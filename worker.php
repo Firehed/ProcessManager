@@ -4,45 +4,25 @@ include './Daemon.php';
 declare(ticks=1);
 Daemon::run();
 
-$work = true;
 $isParent = getmypid();
 $pm = new ProcessManager;
 
+
 function getWorker() {
-	$worker= new GearmanWorker();
-	$worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
-	$worker->setTimeout(2500);
-	$worker->addServer();
-	$worker->addFunction("reverse", "my_reverse_function");
-	$worker->addFunction('caps', "my_uppercase");
-	return $worker;
-}
-
-function runWorker(GearmanWorker $worker) {
-	global $work;
-	echo "before work starts\n";
-	$err = 0;
-	while ( $work && ( $worker->work() || $worker->returnCode() == GEARMAN_IO_WAIT || $worker->returnCode() == GEARMAN_NO_JOBS)) {
-			//echo "worked - {$worker->returnCode()}\n"; 
-			if ($worker->returnCode() == GEARMAN_SUCCESS) continue;
-			if (!$worker->wait()) {
-				if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
-					echo "Could not connect to server\n";
-					if (5 < $err++) exit(1);
-					sleep(2);
-				} else $err = 0;
-			}
-	}
-	var_dump($worker->error(), $worker->getErrno(), $worker->returnCode());
-	//while ($work && $worker->work()) echo 'working'; 
-	echo "all done\n";
-
+	$w= new GearmanWorker();
+	$w->addOptions(GEARMAN_WORKER_NON_BLOCKING);
+	$w->setTimeout(2500);
+	$w->addServer();
+	$w->addFunction("reverse", "my_reverse_function");
+	$w->addFunction('caps', "my_uppercase");
+	return $w;
 }
 
 class ProcessManager {
 
 	private $managerPid;
 	private $workerProcesses = [];
+	private $shouldWork = true;
 
 	function __construct() {
 		$this->install_signals();
@@ -53,7 +33,7 @@ class ProcessManager {
 
 	private function manageWorkers() {
 		while (1) {
-			// Do nothing other than wait for SIGTERM/SIGINT
+			// Do nothing other than wait for SIGTERM/SIGIN
 			sleep(5);
 		}
 	}
@@ -81,8 +61,7 @@ class ProcessManager {
 		}
 		else {
 			echo 'Child got sigterm'."\n";
-			global $work;
-			$work = false;
+			$this->shouldWork = false;
 		}
 	}
 
@@ -104,8 +83,7 @@ class ProcessManager {
 				$myPid = getmypid();
 				echo "I'm the child, my PID = $myPid\n";
 				$this->install_signals();
-				runWorker(getWorker());
-				exit;
+				$this->work();
 				break;
 			default:
 				echo "Parent forked into pid $pid\n";
@@ -114,6 +92,25 @@ class ProcessManager {
 			}
 		}
 		
+	}
+
+	private function work() {
+		$worker = getWorker();
+		echo "before work starts\n";
+		$err = 0;
+		while ( $this->shouldWork && ( $worker->work() || $worker->returnCode() == GEARMAN_IO_WAIT || $worker->returnCode() == GEARMAN_NO_JOBS)) {
+				//echo "worked - {$worker->returnCode()}\n"; 
+				if ($worker->returnCode() == GEARMAN_SUCCESS) continue;
+				if (!$worker->wait()) {
+					if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
+						echo "Could not connect to server\n";
+						if (5 < $err++) exit(1);
+						sleep(2);
+					} else $err = 0;
+				}
+		}
+		echo "Worker all done\n";
+		exit;
 	}
 
 }
