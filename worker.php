@@ -4,8 +4,10 @@ include './Daemon.php';
 declare(ticks=1);
 Daemon::run();
 
+
+
 $isParent = getmypid();
-$pm = new ProcessManager;
+$pm = new GearmanProcessManager;
 
 
 function getWorker() {
@@ -18,7 +20,7 @@ function getWorker() {
 	return $w;
 }
 
-class ProcessManager {
+abstract class ProcessManager {
 
 	private $managerPid;
 	private $workerProcesses = [];
@@ -96,23 +98,38 @@ class ProcessManager {
 
 	private function work() {
 		$worker = getWorker();
-		echo "before work starts\n";
+		echo "Before work starts\n";
 		$err = 0;
-		while ( $this->shouldWork && ( $worker->work() || $worker->returnCode() == GEARMAN_IO_WAIT || $worker->returnCode() == GEARMAN_NO_JOBS)) {
-				//echo "worked - {$worker->returnCode()}\n"; 
-				if ($worker->returnCode() == GEARMAN_SUCCESS) continue;
-				if (!$worker->wait()) {
-					if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
-						echo "Could not connect to server\n";
-						if (5 < $err++) exit(1);
-						sleep(2);
-					} else $err = 0;
-				}
+		while ( $this->shouldWork ) {
+			if ( ! $this->doWork() ) break;
 		}
 		echo "Worker all done\n";
 		exit;
 	}
+	abstract protected function doWork();
 
+}
+class GearmanProcessManager extends ProcessManager {
+	private $worker = null;
+	protected function doWork() {
+		if (!$this->worker) $this->worker = getWorker();
+		$worker = $this->worker;
+		if ( $worker->work() || $worker->returnCode() == GEARMAN_IO_WAIT || $worker->returnCode() == GEARMAN_NO_JOBS) {
+			//echo "worked - {$worker->returnCode()}\n"; 
+			if ($worker->returnCode() == GEARMAN_SUCCESS) return true;
+			if (!$worker->wait()) {
+				if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
+					echo "Could not connect to server\n";
+					if (5 < $err++) exit(1);
+					sleep(2);
+				} else $err = 0;
+			}
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 }
 
 function my_reverse_function($job)
