@@ -6,28 +6,6 @@ Daemon::run();
 
 $work = true;
 $isParent = getmypid();
-function foo($signo) { 
-	global $isParent;
-	if ($isParent == getmypid()) {
-		echo 'Parent got sigterm'."\n"; 
-		global $children;
-		var_dump($children);
-		stop_children(SIGTERM);
-		while ($children) {
-			$status = null;
-			$exited = pcntl_wait($status, WNOHANG);
-			echo "WNOHANG Exited = $exited\n";
-			sleep(1);
-			unset($children[$exited]);
-		}
-		exit;
-	}
-	else {
-		echo 'Child got sigterm'."\n"; 
-		global $work; 
-		$work = false; 
-	}
-}
 function stop_children($sig = SIGTERM) {
 	global $children;
 	foreach ($children as $pid) {
@@ -47,7 +25,7 @@ for ($i = 0; $i < 2; $i++) {
 	case -1: echo "Forking failed"; exit(2);
 	case 0: 
 		$myPid = getmypid();
-		echo "I'm the child, my PID = $myPid \$isParent = $isParent\n";
+		echo "I'm the child, my PID = $myPid\n";
 		$pm->install_signals();
 		runWorker(getWorker());
 		exit;
@@ -96,14 +74,39 @@ function runWorker(GearmanWorker $worker) {
 
 class ProcessManager {
 
+	private $managerPid;
+
 	function __construct() {
 		$this->install_signals();
+		$this->managerPid = getmypid();
 	}
 
 	function install_signals() {
 		echo getmypid() . " SIGTERM handler installation\n";
-		pcntl_signal(SIGTERM, 'foo');
-		pcntl_signal(SIGINT, 'foo');
+		pcntl_signal(SIGTERM, [$this,'signal']);
+		pcntl_signal(SIGINT,  [$this,'signal']);
+	}
+
+	function signal($signo) {
+		if (getmypid() == $this->managerPid) {
+			echo 'Parent got sigterm'."\n";
+			global $children;
+			var_dump($children);
+			stop_children(SIGTERM);
+			while ($children) {
+				$status = null;
+				$exited = pcntl_wait($status, WNOHANG);
+				echo "WNOHANG Exited = $exited\n";
+				sleep(1);
+				unset($children[$exited]);
+			}
+			exit;
+		}
+		else {
+			echo 'Child got sigterm'."\n";
+			global $work;
+			$work = false;
+		}
 	}
 
 }
