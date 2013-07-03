@@ -8,24 +8,6 @@ $work = true;
 $isParent = getmypid();
 $pm = new ProcessManager;
 
-$children = [];
-for ($i = 0; $i < 2; $i++) {
-	switch ($pid = pcntl_fork()) {
-	case -1: echo "Forking failed"; exit(2);
-	case 0: 
-		$myPid = getmypid();
-		echo "I'm the child, my PID = $myPid\n";
-		$pm->install_signals();
-		runWorker(getWorker());
-		exit;
-		break;
-	default:
-		echo "Parent forked into pid $pid\n";
-		$children[$pid] = $pid;
-		break;
-	}
-}
-
 if ($isParent == getmypid()) {
 	while (1) sleep(1);
 }
@@ -64,10 +46,12 @@ function runWorker(GearmanWorker $worker) {
 class ProcessManager {
 
 	private $managerPid;
+	private $children = [];
 
 	function __construct() {
 		$this->install_signals();
 		$this->managerPid = getmypid();
+		$this->spawnWorkers();
 	}
 
 	function install_signals() {
@@ -79,16 +63,16 @@ class ProcessManager {
 	function signal($signo) {
 		if (getmypid() == $this->managerPid) {
 			echo 'Parent got sigterm'."\n";
-			global $children;
-			var_dump($children);
+			var_dump($this->children);
 			$this->stop_children(SIGTERM);
-			while ($children) {
+			while ($this->children) {
 				$status = null;
 				$exited = pcntl_wait($status, WNOHANG);
 				echo "WNOHANG Exited = $exited\n";
 				sleep(1);
-				unset($children[$exited]);
+				unset($this->children[$exited]);
 			}
+			echo "Parent shutting down\n";
 			exit;
 		}
 		else {
@@ -99,8 +83,7 @@ class ProcessManager {
 	}
 
 	function stop_children($sig = SIGTERM) {
-		global $children;
-		foreach ($children as $pid) {
+		foreach ($this->children as $pid) {
 			echo "Sending SIGTERM to $pid\n";
 			posix_kill($pid, $sig);
 			if (!posix_kill($pid, 0)) {
@@ -109,6 +92,25 @@ class ProcessManager {
 		}
 	}
 
+	private function spawnWorkers() {
+		for ($i = 0; $i < 2; $i++) {
+			switch ($pid = pcntl_fork()) {
+			case -1: echo "Forking failed"; exit(2);
+			case 0: 
+				$myPid = getmypid();
+				echo "I'm the child, my PID = $myPid\n";
+				$this->install_signals();
+				runWorker(getWorker());
+				exit;
+				break;
+			default:
+				echo "Parent forked into pid $pid\n";
+				$this->children[$pid] = $pid;
+				break;
+			}
+		}
+		
+	}
 
 }
 
