@@ -39,14 +39,7 @@ function stop_children($sig = SIGTERM) {
 	}
 }
 
-
-function install_signals() {
-	echo getmypid() . " SIGTERM handler installation\n";
-	pcntl_signal(SIGTERM, 'foo');
-	pcntl_signal(SIGINT, 'foo');
-}
-
-install_signals();
+$pm = new ProcessManager;
 
 $children = [];
 $workers = [];
@@ -56,7 +49,7 @@ for ($i = 0; $i < 2; $i++) {
 	case 0: 
 		$myPid = getmypid();
 		echo "I'm the child, my PID = $myPid \$isParent = $isParent\n";
-		install_signals();
+		$pm->install_signals();
 		runWorker(getWorker());
 		exit;
 		break;
@@ -101,6 +94,21 @@ function runWorker(GearmanWorker $worker) {
 	echo "all done\n";
 
 }
+
+class ProcessManager {
+
+	function __construct() {
+		$this->install_signals();
+	}
+
+	function install_signals() {
+		echo getmypid() . " SIGTERM handler installation\n";
+		pcntl_signal(SIGTERM, 'foo');
+		pcntl_signal(SIGINT, 'foo');
+	}
+
+}
+
 function my_reverse_function($job)
 {
   return strrev($job->workload());
