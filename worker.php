@@ -6,17 +6,6 @@ Daemon::run();
 
 $work = true;
 $isParent = getmypid();
-function stop_children($sig = SIGTERM) {
-	global $children;
-	foreach ($children as $pid) {
-		echo "Sending SIGTERM to $pid\n";
-		posix_kill($pid, $sig);
-		if (!posix_kill($pid, 0)) {
-			echo "$pid is dead already\n";
-		}
-	}
-}
-
 $pm = new ProcessManager;
 
 $children = [];
@@ -92,7 +81,7 @@ class ProcessManager {
 			echo 'Parent got sigterm'."\n";
 			global $children;
 			var_dump($children);
-			stop_children(SIGTERM);
+			$this->stop_children(SIGTERM);
 			while ($children) {
 				$status = null;
 				$exited = pcntl_wait($status, WNOHANG);
@@ -108,6 +97,18 @@ class ProcessManager {
 			$work = false;
 		}
 	}
+
+	function stop_children($sig = SIGTERM) {
+		global $children;
+		foreach ($children as $pid) {
+			echo "Sending SIGTERM to $pid\n";
+			posix_kill($pid, $sig);
+			if (!posix_kill($pid, 0)) {
+				echo "$pid is dead already\n";
+			}
+		}
+	}
+
 
 }
 
