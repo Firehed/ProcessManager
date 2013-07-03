@@ -42,7 +42,6 @@ function stop_children($sig = SIGTERM) {
 $pm = new ProcessManager;
 
 $children = [];
-$workers = [];
 for ($i = 0; $i < 2; $i++) {
 	switch ($pid = pcntl_fork()) {
 	case -1: echo "Forking failed"; exit(2);
