@@ -46,7 +46,7 @@ function runWorker(GearmanWorker $worker) {
 class ProcessManager {
 
 	private $managerPid;
-	private $children = [];
+	private $workerProcesses = [];
 
 	function __construct() {
 		$this->install_signals();
@@ -63,14 +63,14 @@ class ProcessManager {
 	function signal($signo) {
 		if (getmypid() == $this->managerPid) {
 			echo 'Parent got sigterm'."\n";
-			var_dump($this->children);
+			var_dump($this->workerProcesses);
 			$this->stop_children(SIGTERM);
-			while ($this->children) {
+			while ($this->workerProcesses) {
 				$status = null;
 				$exited = pcntl_wait($status, WNOHANG);
 				echo "WNOHANG Exited = $exited\n";
 				sleep(1);
-				unset($this->children[$exited]);
+				unset($this->workerProcesses[$exited]);
 			}
 			echo "Parent shutting down\n";
 			exit;
@@ -83,7 +83,7 @@ class ProcessManager {
 	}
 
 	function stop_children($sig = SIGTERM) {
-		foreach ($this->children as $pid) {
+		foreach ($this->workerProcesses as $pid) {
 			echo "Sending SIGTERM to $pid\n";
 			posix_kill($pid, $sig);
 			if (!posix_kill($pid, 0)) {
@@ -105,7 +105,7 @@ class ProcessManager {
 				break;
 			default:
 				echo "Parent forked into pid $pid\n";
-				$this->children[$pid] = $pid;
+				$this->workerProcesses[$pid] = $pid;
 				break;
 			}
 		}
