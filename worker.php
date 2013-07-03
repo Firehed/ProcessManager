@@ -8,10 +8,6 @@ $work = true;
 $isParent = getmypid();
 $pm = new ProcessManager;
 
-if ($isParent == getmypid()) {
-	while (1) sleep(1);
-}
-
 function getWorker() {
 	$worker= new GearmanWorker();
 	$worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
@@ -52,6 +48,14 @@ class ProcessManager {
 		$this->install_signals();
 		$this->managerPid = getmypid();
 		$this->spawnWorkers();
+		$this->manageWorkers();
+	}
+
+	private function manageWorkers() {
+		while (1) {
+			// Do nothing other than wait for SIGTERM/SIGINT
+			sleep(5);
+		}
 	}
 
 	function install_signals() {
