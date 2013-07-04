@@ -139,8 +139,7 @@ class GearmanProcessManager extends ProcessManager {
 	protected function doWork() {
 		$worker = $this->getWorker();
 		if ($worker->work()) {
-			$pid = getmypid();
-			echo "Got a job - $pid \n";
+			$this->logDebug("$this->myPid processed a job");
 			return true;
 		}
 		switch ($worker->returnCode()) {
