@@ -95,13 +95,12 @@ abstract class ProcessManager {
 				break;
 			}
 		}
-		
 	}
 
 	private function work() {
 		$this->logDebug("Child $this->myPid about to start work");
 		while ( $this->shouldWork ) {
-			if ( ! $this->doWork() ) break;
+			$this->doWork();
 		}
 		$this->logInfo("Child $this->myPid exiting");
 		exit;
@@ -121,10 +120,10 @@ abstract class ProcessManager {
 }
 class GearmanProcessManager extends ProcessManager {
 	private $worker = null;
-	private $connectionError = 0;
+	private $reconnects = 0;
 	private function getWorker() {
 		if (!$this->worker) {
-			echo "Building new worker\n";
+			$this->logDebug("Building new worker");
 			$this->worker = new GearmanWorker();
 			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
 			$this->worker->setTimeout(2500);
@@ -140,24 +139,29 @@ class GearmanProcessManager extends ProcessManager {
 		$worker = $this->getWorker();
 		if ($worker->work()) {
 			$this->logDebug("$this->myPid processed a job");
+			$this->reconnects = 0;
 			return true;
 		}
 		switch ($worker->returnCode()) {
 			case GEARMAN_IO_WAIT:
 			case GEARMAN_NO_JOBS:
-				if (!$worker->wait()) {
-					if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
-						echo "Could not connect to server\n";
-						if (5 < $this->connectionError++) {
-							echo "Giving up.\n";
-							return false;
-						}
-						sleep(2);
-					} else $this->connectionError = 0;
+				if (@$worker->wait()) {
+					$this->reconnects = 0;
+					return true;
 				}
-				return true;
+				if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
+					$this->logError("$this->myPid Connection to gearmand server failed");
+					if (++$this->reconnects >= 5) {
+						$this->logError("$this->myPid Giving up");
+						$this->stopWorking();
+					}
+					else {
+						sleep(2);
+					}
+				}
+				break;
 			default:
-				return false;
+				$this->stopWorking();
 		}
 	}
 }
