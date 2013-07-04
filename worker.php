@@ -15,8 +15,8 @@ abstract class ProcessManager {
 	private $shouldWork = true;
 
 	function __construct() {
-		$this->install_signals();
 		$this->managerPid = $this->myPid = getmypid();
+		$this->install_signals();
 		$this->spawnWorkers();
 		$this->manageWorkers();
 	}
