@@ -146,6 +146,7 @@ class GearmanProcessManager extends ProcessManager {
 			case GEARMAN_IO_WAIT:
 			case GEARMAN_NO_JOBS:
 				if (@$worker->wait()) {
+					$this->logDebug("$this->myPid waited with no error");
 					$this->reconnects = 0;
 					return true;
 				}
@@ -161,6 +162,7 @@ class GearmanProcessManager extends ProcessManager {
 				}
 				break;
 			default:
+				$this->logError("$this->myPid exiting after getting code {$worker->returnCode()}");
 				$this->stopWorking();
 		}
 	}
