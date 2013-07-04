@@ -4,20 +4,19 @@ include './Daemon.php';
 declare(ticks=1);
 Daemon::run();
 
-
-
 $isParent = getmypid();
 $pm = new GearmanProcessManager;
 
 abstract class ProcessManager {
 
 	private $managerPid;
+	private $myPid;
 	private $workerProcesses = [];
 	private $shouldWork = true;
 
 	function __construct() {
 		$this->install_signals();
-		$this->managerPid = getmypid();
+		$this->managerPid = $this->myPid = getmypid();
 		$this->spawnWorkers();
 		$this->manageWorkers();
 	}
@@ -30,7 +29,7 @@ abstract class ProcessManager {
 	}
 
 	function install_signals() {
-		echo getmypid() . " SIGTERM handler installation\n";
+		$this->logDebug("$this->myPid SIGTERM handler installation");
 		pcntl_signal(SIGTERM, [$this,'signal']);
 		pcntl_signal(SIGINT,  [$this,'signal']);
 	}
@@ -71,8 +70,8 @@ abstract class ProcessManager {
 			switch ($pid = pcntl_fork()) {
 			case -1: echo "Forking failed"; exit(2);
 			case 0: 
-				$myPid = getmypid();
-				echo "I'm the child, my PID = $myPid\n";
+				$this->myPid = getmypid();
+				$this->logDebug("I'm the child, my PID = $this->myPid");
 				$this->install_signals();
 				$this->work();
 				break;
