@@ -80,15 +80,17 @@ abstract class ProcessManager {
 	private function spawnWorkers() {
 		for ($i = 0; $i < 2; $i++) {
 			switch ($pid = pcntl_fork()) {
-			case -1: echo "Forking failed"; exit(2);
+			case -1:
+				$this->logError("Spawning worker failed");
+				exit(2);
 			case 0: 
 				$this->myPid = getmypid();
-				$this->logDebug("I'm the child, my PID = $this->myPid");
+				$this->logInfo("I'm the child, my PID = $this->myPid");
 				$this->installSignals();
 				$this->work();
 				break;
 			default:
-				echo "Parent forked into pid $pid\n";
+				$this->logDebug("Parent created child with pid $pid");
 				$this->workerProcesses[$pid] = $pid;
 				break;
 			}
