@@ -55,8 +55,12 @@ abstract class ProcessManager {
 		}
 		else {
 			$this->logInfo("Child $this->myPid received SIGTERM; stopping work");
-			$this->shouldWork = false;
+			$this->stopWorking();
 		}
+	}
+
+	protected function stopWorking() {
+		$this->shouldWork = false;
 	}
 
 	private function isParent() {
