@@ -10,9 +10,10 @@ $pm = new GearmanProcessManager;
 abstract class ProcessManager {
 
 	private $managerPid;
-	private $myPid;
 	private $workerProcesses = [];
 	private $shouldWork = true;
+
+	protected $myPid;
 
 	function __construct() {
 		$this->managerPid = $this->myPid = getmypid();
