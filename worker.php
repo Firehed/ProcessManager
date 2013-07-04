@@ -35,7 +35,7 @@ abstract class ProcessManager {
 	}
 
 	function signal($signo) {
-		if ($this->myPid == $this->managerPid) {
+		if ($this->isParent()) {
 			$this->logInfo('Parent got sigterm');
 			$this->logDebug("Children: " . print_r($this->workerProcesses, true));
 			$this->stop_children(SIGTERM);
@@ -56,6 +56,10 @@ abstract class ProcessManager {
 			echo 'Child got sigterm'."\n";
 			$this->shouldWork = false;
 		}
+	}
+
+	private function isParent() {
+		return $this->myPid == $this->managerPid;
 	}
 
 	function stop_children($sig = SIGTERM) {
