@@ -4,7 +4,6 @@ include './Daemon.php';
 declare(ticks=1);
 Daemon::run();
 
-$isParent = getmypid();
 $pm = new GearmanProcessManager;
 
 abstract class ProcessManager {
@@ -15,7 +14,7 @@ abstract class ProcessManager {
 
 	protected $myPid;
 
-	function __construct() {
+	public function __construct() {
 		$this->managerPid = $this->myPid = getmypid();
 		$this->installSignals();
 		$this->spawnWorkers();
@@ -105,36 +104,27 @@ abstract class ProcessManager {
 		$this->logInfo("Child $this->myPid exiting");
 		exit;
 	}
+
 	abstract protected function doWork();
 
 	protected function logDebug($str) {
 		$this->logInfo($str);
 	}
+
 	protected function logInfo($str) {
 		$this->logError($str);
 	}
+
 	protected function logError($str) {
 		echo "$str\n";
 	}
 
 }
 class GearmanProcessManager extends ProcessManager {
+
 	private $worker = null;
 	private $reconnects = 0;
-	private function getWorker() {
-		if (!$this->worker) {
-			$this->logDebug("Building new worker");
-			$this->worker = new GearmanWorker();
-			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
-			$this->worker->setTimeout(2500);
-			$this->worker->addServer();
-			$this->worker->addFunction("reverse", "my_reverse_function");
-			$this->worker->addFunction('caps', "my_uppercase");
-		}
-		return $this->worker;
-	}
 
-	
 	protected function doWork() {
 		$worker = $this->getWorker();
 		if ($worker->work()) {
@@ -166,6 +156,20 @@ class GearmanProcessManager extends ProcessManager {
 				$this->stopWorking();
 		}
 	}
+
+	private function getWorker() {
+		if (!$this->worker) {
+			$this->logDebug("Building new worker");
+			$this->worker = new GearmanWorker();
+			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
+			$this->worker->setTimeout(2500);
+			$this->worker->addServer();
+			$this->worker->addFunction("reverse", "my_reverse_function");
+			$this->worker->addFunction('caps', "my_uppercase");
+		}
+		return $this->worker;
+	}
+
 }
 
 function my_reverse_function($job)
