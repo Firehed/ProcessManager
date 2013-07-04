@@ -99,11 +99,11 @@ abstract class ProcessManager {
 	}
 
 	private function work() {
-		echo "Before work starts\n";
+		$this->logDebug("Child $this->myPid about to start work");
 		while ( $this->shouldWork ) {
 			if ( ! $this->doWork() ) break;
 		}
-		echo "Worker all done\n";
+		$this->logInfo("Child $this->myPid exiting");
 		exit;
 	}
 	abstract protected function doWork();
