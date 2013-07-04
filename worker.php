@@ -21,17 +21,35 @@ abstract class ProcessManager {
 		$this->manageWorkers();
 	}
 
-	private function manageWorkers() {
-		while (1) {
-			// Do nothing other than wait for SIGTERM/SIGIN
-			sleep(5);
-		}
-	}
+	abstract protected function doWork();
 
 	private function installSignals() {
 		$this->logDebug("$this->myPid SIGTERM handler installation");
 		pcntl_signal(SIGTERM, [$this,'signal']);
 		pcntl_signal(SIGINT,  [$this,'signal']);
+	}
+
+	private function isParent() {
+		return $this->myPid == $this->managerPid;
+	}
+
+	protected function logDebug($str) {
+		$this->logInfo($str);
+	}
+
+	protected function logError($str) {
+		echo "$str\n";
+	}
+
+	protected function logInfo($str) {
+		$this->logError($str);
+	}
+
+	private function manageWorkers() {
+		while (1) {
+			// Do nothing other than wait for SIGTERM/SIGIN
+			sleep(5);
+		}
 	}
 
 	public function signal($signo) {
@@ -58,24 +76,6 @@ abstract class ProcessManager {
 		}
 	}
 
-	protected function stopWorking() {
-		$this->shouldWork = false;
-	}
-
-	private function isParent() {
-		return $this->myPid == $this->managerPid;
-	}
-
-	private function stopChildren($sig = SIGTERM) {
-		foreach ($this->workerProcesses as $pid) {
-			$this->logDebug("Sending SIGTERM to $pid");
-			posix_kill($pid, $sig);
-			if (!posix_kill($pid, 0)) {
-				$this->logDebug("$pid is dead already");
-			}
-		}
-	}
-
 	private function spawnWorkers() {
 		for ($i = 0; $i < 2; $i++) {
 			switch ($pid = pcntl_fork()) {
@@ -96,6 +96,20 @@ abstract class ProcessManager {
 		}
 	}
 
+	private function stopChildren($sig = SIGTERM) {
+		foreach ($this->workerProcesses as $pid) {
+			$this->logDebug("Sending SIGTERM to $pid");
+			posix_kill($pid, $sig);
+			if (!posix_kill($pid, 0)) {
+				$this->logDebug("$pid is dead already");
+			}
+		}
+	}
+
+	protected function stopWorking() {
+		$this->shouldWork = false;
+	}
+
 	private function work() {
 		$this->logDebug("Child $this->myPid about to start work");
 		while ( $this->shouldWork ) {
@@ -103,20 +117,6 @@ abstract class ProcessManager {
 		}
 		$this->logInfo("Child $this->myPid exiting");
 		exit;
-	}
-
-	abstract protected function doWork();
-
-	protected function logDebug($str) {
-		$this->logInfo($str);
-	}
-
-	protected function logInfo($str) {
-		$this->logError($str);
-	}
-
-	protected function logError($str) {
-		echo "$str\n";
 	}
 
 }
