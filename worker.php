@@ -49,11 +49,11 @@ abstract class ProcessManager {
 					sleep(1);
 				}
 			}
-			echo "Parent shutting down\n";
+			$this->logInfo("Parent shutting down");
 			exit;
 		}
 		else {
-			echo 'Child got sigterm'."\n";
+			$this->logInfo("Child $this->myPid received SIGTERM; stopping work");
 			$this->shouldWork = false;
 		}
 	}
