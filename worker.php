@@ -95,6 +95,16 @@ abstract class ProcessManager {
 	}
 	abstract protected function doWork();
 
+	protected function logDebug($str) {
+		$this->logInfo($str);
+	}
+	protected function logInfo($str) {
+		$this->logError($str);
+	}
+	protected function logError($str) {
+		echo "$str\n";
+	}
+
 }
 class GearmanProcessManager extends ProcessManager {
 	private $worker = null;
