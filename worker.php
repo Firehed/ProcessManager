@@ -41,10 +41,13 @@ abstract class ProcessManager {
 			$this->stop_children(SIGTERM);
 			while ($this->workerProcesses) {
 				$status = null;
-				$exited = pcntl_wait($status, WNOHANG);
-				echo "WNOHANG Exited = $exited\n";
-				sleep(1);
-				unset($this->workerProcesses[$exited]);
+				if ($exited = pcntl_wait($status, WNOHANG)) {
+					unset($this->workerProcesses[$exited]);
+					$this->logDebug("Worker $exited got WNOHANG");
+				}
+				else {
+					sleep(1);
+				}
 			}
 			echo "Parent shutting down\n";
 			exit;
