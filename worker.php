@@ -64,10 +64,10 @@ abstract class ProcessManager {
 
 	function stop_children($sig = SIGTERM) {
 		foreach ($this->workerProcesses as $pid) {
-			echo "Sending SIGTERM to $pid\n";
+			$this->logDebug("Sending SIGTERM to $pid");
 			posix_kill($pid, $sig);
 			if (!posix_kill($pid, 0)) {
-				echo "$pid is dead already\n";
+				$this->logDebug("$pid is dead already");
 			}
 		}
 	}
