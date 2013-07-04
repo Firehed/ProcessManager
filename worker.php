@@ -9,17 +9,6 @@ Daemon::run();
 $isParent = getmypid();
 $pm = new GearmanProcessManager;
 
-
-function getWorker() {
-	$w= new GearmanWorker();
-	$w->addOptions(GEARMAN_WORKER_NON_BLOCKING);
-	$w->setTimeout(2500);
-	$w->addServer();
-	$w->addFunction("reverse", "my_reverse_function");
-	$w->addFunction('caps', "my_uppercase");
-	return $w;
-}
-
 abstract class ProcessManager {
 
 	private $managerPid;
@@ -97,9 +86,7 @@ abstract class ProcessManager {
 	}
 
 	private function work() {
-		$worker = getWorker();
 		echo "Before work starts\n";
-		$err = 0;
 		while ( $this->shouldWork ) {
 			if ( ! $this->doWork() ) break;
 		}
@@ -111,23 +98,44 @@ abstract class ProcessManager {
 }
 class GearmanProcessManager extends ProcessManager {
 	private $worker = null;
+	private $connectionError = 0;
+	private function getWorker() {
+		if (!$this->worker) {
+			echo "Building new worker\n";
+			$this->worker = new GearmanWorker();
+			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
+			$this->worker->setTimeout(2500);
+			$this->worker->addServer();
+			$this->worker->addFunction("reverse", "my_reverse_function");
+			$this->worker->addFunction('caps', "my_uppercase");
+		}
+		return $this->worker;
+	}
+
+	
 	protected function doWork() {
-		if (!$this->worker) $this->worker = getWorker();
-		$worker = $this->worker;
-		if ( $worker->work() || $worker->returnCode() == GEARMAN_IO_WAIT || $worker->returnCode() == GEARMAN_NO_JOBS) {
-			//echo "worked - {$worker->returnCode()}\n"; 
-			if ($worker->returnCode() == GEARMAN_SUCCESS) return true;
-			if (!$worker->wait()) {
-				if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
-					echo "Could not connect to server\n";
-					if (5 < $err++) exit(1);
-					sleep(2);
-				} else $err = 0;
-			}
+		$worker = $this->getWorker();
+		if ($worker->work()) {
+			$pid = getmypid();
+			echo "Got a job - $pid \n";
 			return true;
 		}
-		else {
-			return false;
+		switch ($worker->returnCode()) {
+			case GEARMAN_IO_WAIT:
+			case GEARMAN_NO_JOBS:
+				if (!$worker->wait()) {
+					if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
+						echo "Could not connect to server\n";
+						if (5 < $this->connectionError++) {
+							echo "Giving up.\n";
+							return false;
+						}
+						sleep(2);
+					} else $this->connectionError = 0;
+				}
+				return true;
+			default:
+				return false;
 		}
 	}
 }
