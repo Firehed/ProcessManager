@@ -34,11 +34,11 @@ abstract class ProcessManager {
 		pcntl_signal(SIGINT,  [$this,'signal']);
 	}
 
-	function signal($signo) {
+	public function signal($signo) {
 		if ($this->isParent()) {
 			$this->logInfo('Parent got sigterm');
 			$this->logDebug("Children: " . print_r($this->workerProcesses, true));
-			$this->stop_children(SIGTERM);
+			$this->stopChildren(SIGTERM);
 			while ($this->workerProcesses) {
 				$status = null;
 				if ($exited = pcntl_wait($status, WNOHANG)) {
@@ -62,7 +62,7 @@ abstract class ProcessManager {
 		return $this->myPid == $this->managerPid;
 	}
 
-	function stop_children($sig = SIGTERM) {
+	private function stopChildren($sig = SIGTERM) {
 		foreach ($this->workerProcesses as $pid) {
 			$this->logDebug("Sending SIGTERM to $pid");
 			posix_kill($pid, $sig);
