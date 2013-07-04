@@ -11,14 +11,22 @@ abstract class ProcessManager {
 	private $managerPid;
 	private $workerProcesses = [];
 	private $shouldWork = true;
+	private $workers = 2;
 
 	protected $myPid;
 
 	public function __construct() {
 		$this->managerPid = $this->myPid = getmypid();
 		$this->installSignals();
-		$this->spawnWorkers();
 		$this->manageWorkers();
+	}
+
+	private function cleanChildren() {
+		$status = null;
+		if ($exited = pcntl_wait($status, WNOHANG)) {
+			unset($this->workerProcesses[$exited]);
+			$this->logInfo("Worker $exited got WNOHANG during normal operation");
+		}
 	}
 
 	abstract protected function doWork();
@@ -46,14 +54,21 @@ abstract class ProcessManager {
 	}
 
 	private function manageWorkers() {
-		while (1) {
+		while ($this->shouldWork) {
 			// Do nothing other than wait for SIGTERM/SIGIN
-			sleep(5);
+			if (count($this->workerProcesses) < $this->workers) {
+				$this->spawnWorker();
+			}
+			else {
+				$this->cleanChildren();
+				sleep(5);
+			}
 		}
 	}
 
 	public function signal($signo) {
 		if ($this->isParent()) {
+			$this->stopWorking();
 			$this->logInfo('Parent got sigterm');
 			$this->logDebug("Children: " . print_r($this->workerProcesses, true));
 			$this->stopChildren(SIGTERM);
@@ -76,23 +91,22 @@ abstract class ProcessManager {
 		}
 	}
 
-	private function spawnWorkers() {
-		for ($i = 0; $i < 2; $i++) {
-			switch ($pid = pcntl_fork()) {
-			case -1:
-				$this->logError("Spawning worker failed");
-				exit(2);
-			case 0: 
-				$this->myPid = getmypid();
-				$this->logInfo("I'm the child, my PID = $this->myPid");
-				$this->installSignals();
-				$this->work();
-				break;
-			default:
-				$this->logDebug("Parent created child with pid $pid");
-				$this->workerProcesses[$pid] = $pid;
-				break;
-			}
+	private function spawnWorker() {
+		$this->logInfo("Creating a new worker");
+		switch ($pid = pcntl_fork()) {
+		case -1: // Failed
+			$this->logError("Spawning worker failed");
+			exit(2);
+		case 0:  // Child
+			$this->myPid = getmypid();
+			$this->logInfo("$this->myPid created");
+			$this->installSignals();
+			$this->work();
+			break;
+		default: // Parent
+			$this->logDebug("Parent created child with pid $pid");
+			$this->workerProcesses[$pid] = $pid;
+			break;
 		}
 	}
 
