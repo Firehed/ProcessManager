@@ -16,7 +16,7 @@ abstract class ProcessManager {
 
 	function __construct() {
 		$this->managerPid = $this->myPid = getmypid();
-		$this->install_signals();
+		$this->installSignals();
 		$this->spawnWorkers();
 		$this->manageWorkers();
 	}
@@ -28,7 +28,7 @@ abstract class ProcessManager {
 		}
 	}
 
-	function install_signals() {
+	private function installSignals() {
 		$this->logDebug("$this->myPid SIGTERM handler installation");
 		pcntl_signal(SIGTERM, [$this,'signal']);
 		pcntl_signal(SIGINT,  [$this,'signal']);
@@ -79,7 +79,7 @@ abstract class ProcessManager {
 			case 0: 
 				$this->myPid = getmypid();
 				$this->logDebug("I'm the child, my PID = $this->myPid");
-				$this->install_signals();
+				$this->installSignals();
 				$this->work();
 				break;
 			default:
