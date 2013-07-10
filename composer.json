@@ -1,13 +1,13 @@
 { "name": "firehed/processmanager"
-,	"description": "Simple base for daemonized wokers"
-,	"license": "MIT"
-,	"autoload":
-		{ "psr-0": 
-			{ "Firehed\\ProcessControl\\ProcessManager": "src/"
-			}
+, "description": "Simple base for daemonized wokers"
+, "license": "MIT"
+, "autoload":
+	{ "psr-0":
+		{ "Firehed\\ProcessControl\\ProcessManager": "src/"
 		}
-,	"require":
-		{ "psr/log": ">=1.0.0"
-		,"firehed/daemon": "dev-master"
-		}
+	}
+, "require":
+	{ "psr/log": ">=1.0.0"
+	, "firehed/daemon": "dev-master"
+	}
 }
