@@ -1,0 +1,31 @@
+[
+    {
+        "name": "firehed/daemon",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/Firehed/php-daemon.git",
+            "reference": "8736c6d13130fe846f9ab5f43523998beb98cb43"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/Firehed/php-daemon/zipball/8736c6d13130fe846f9ab5f43523998beb98cb43",
+            "reference": "8736c6d13130fe846f9ab5f43523998beb98cb43",
+            "shasum": ""
+        },
+        "time": "2013-07-10 06:26:44",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "Firehed": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Turn a command-line script into a daemonized process"
+    }
+]

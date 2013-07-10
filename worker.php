@@ -1,8 +1,9 @@
 <?php
 
-include './Daemon.php';
+require './vendor/autoload.php';
+
 declare(ticks=1);
-Daemon::run();
+Firehed\ProcessControl\Daemon::run();
 
 $pm = new GearmanProcessManager;
 
