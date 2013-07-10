@@ -6,5 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Firehed' => array($vendorDir . '/firehed/daemon/src'),
+    'Psr\\Log\\' => array($vendorDir . '/psr/log'),
+    'Firehed\\ProcessControl\\ProcessManager' => array($baseDir . '/src'),
+    'Firehed\\ProcessControl\\Daemon' => array($vendorDir . '/firehed/daemon/src'),
 );

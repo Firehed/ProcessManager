@@ -1,25 +1,70 @@
 [
     {
+        "name": "psr/log",
+        "version": "1.0.0",
+        "version_normalized": "1.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/php-fig/log",
+            "reference": "1.0.0"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://github.com/php-fig/log/archive/1.0.0.zip",
+            "reference": "1.0.0",
+            "shasum": ""
+        },
+        "time": "2012-12-21 11:40:51",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Psr\\Log\\": ""
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "PHP-FIG",
+                "homepage": "http://www.php-fig.org/"
+            }
+        ],
+        "description": "Common interface for logging libraries",
+        "keywords": [
+            "log",
+            "psr",
+            "psr-3"
+        ]
+    },
+    {
         "name": "firehed/daemon",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/Firehed/php-daemon.git",
-            "reference": "8736c6d13130fe846f9ab5f43523998beb98cb43"
+            "reference": "4ec7fdf8813b13d7c89eea2437639495876b4827"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Firehed/php-daemon/zipball/8736c6d13130fe846f9ab5f43523998beb98cb43",
-            "reference": "8736c6d13130fe846f9ab5f43523998beb98cb43",
+            "url": "https://api.github.com/repos/Firehed/php-daemon/zipball/4ec7fdf8813b13d7c89eea2437639495876b4827",
+            "reference": "4ec7fdf8813b13d7c89eea2437639495876b4827",
             "shasum": ""
         },
-        "time": "2013-07-10 06:26:44",
+        "require": {
+            "ext-pcntl": "*",
+            "ext-posix": "*",
+            "php": ">=5.3.0"
+        },
+        "time": "2013-07-10 08:27:27",
         "type": "library",
         "installation-source": "source",
         "autoload": {
             "psr-0": {
-                "Firehed": "src/"
+                "Firehed\\ProcessControl\\Daemon": "src/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
