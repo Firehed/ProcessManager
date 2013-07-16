@@ -9,7 +9,7 @@ abstract class ProcessManager {
 	private $managerPid;
 	private $workerProcesses = [];
 	private $shouldWork = true;
-	private $workers = 2;
+	private $workers = 1;
 
 
 	protected $myPid;
