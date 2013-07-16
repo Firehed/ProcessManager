@@ -18,6 +18,9 @@ abstract class ProcessManager {
 		$this->managerPid = $this->myPid = getmypid();
 		$this->setLogger(new \Psr\Log\NullLogger);
 		$this->installSignals();
+	}
+
+	final public function start() {
 		$this->manageWorkers();
 	}
 
