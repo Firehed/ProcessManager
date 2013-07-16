@@ -20,6 +20,16 @@ abstract class ProcessManager {
 		$this->installSignals();
 	}
 
+	public function setWorkerCount($count) {
+		if (!is_int($count)) {
+			throw new InvalidArgumentException("Integer argument is required");
+		}
+		if ($count < 1) {
+			throw new InvalidArgumentException("Must have at least 1 worker");
+		}
+		$this->workers = $count;
+	}
+
 	final public function start() {
 		$this->manageWorkers();
 	}
