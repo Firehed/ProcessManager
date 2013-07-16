@@ -1,8 +1,15 @@
 <?php
+
 class GearmanProcessManager extends Firehed\ProcessControl\ProcessManager {
 
 	private $worker = null;
 	private $reconnects = 0;
+
+	private $functions = [];
+
+	public function addFunction($name, callable $fn) {
+		$this->functions[$name] = $fn;
+	}
 
 	protected function doWork() {
 		$worker = $this->getWorker();
@@ -43,8 +50,9 @@ class GearmanProcessManager extends Firehed\ProcessControl\ProcessManager {
 			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
 			$this->worker->setTimeout(2500);
 			$this->worker->addServer();
-			$this->worker->addFunction("reverse", "my_reverse_function");
-			$this->worker->addFunction('caps', "my_uppercase");
+			foreach ($this->functions as $name => $fn) {
+				$this->worker->addFunction($name, $fn);
+			}
 		}
 		return $this->worker;
 	}
