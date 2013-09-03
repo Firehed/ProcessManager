@@ -1,6 +1,10 @@
 <?php
 
-class GearmanProcessManager extends Firehed\ProcessControl\ProcessManager {
+namespace Firehed\ProcessControl;
+
+use GearmanWorker;
+
+class GearmanWorkerManager extends ProcessManager {
 
 	private $worker = null;
 	private $reconnects = 0;
