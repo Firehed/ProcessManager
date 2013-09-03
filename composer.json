@@ -3,7 +3,7 @@
 , "license": "MIT"
 , "autoload":
 	{ "psr-0":
-		{ "Firehed\\ProcessControl\\ProcessManager": "src/"
+		{ "Firehed\\ProcessControl": "src/"
 		}
 	}
 , "require":
