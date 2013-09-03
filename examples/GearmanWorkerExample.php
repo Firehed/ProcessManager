@@ -1,7 +1,10 @@
 <?php
 
-$loader = require './vendor/autoload.php';
-$loader->setUseIncludePath(true);
+if (file_exists('./vendor/autoload.php')) {
+	require_once './vendor/autoload.php';
+} elseif (file_exists('../../../vendor/autoload.php')) {
+	require_once '../../../vendor/autoload.php';
+}
 
 declare(ticks=1);
 Firehed\ProcessControl\Daemon::run();
@@ -10,7 +13,7 @@ function my_reverse_function($job) {
 	return strrev($job->workload());
 }
 
-$pm = new GearmanProcessManager;
+$pm = new Firehed\ProcessControl\GearmanWorkerManager;
 
 // Example GearmanProcessManager class jobs
 $pm->addFunction("my_reverse_function", "my_reverse_function");
