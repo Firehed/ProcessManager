@@ -96,12 +96,7 @@ abstract class ProcessManager {
 				print_r(array_keys($this->workerProcesses), true));
 			$this->stopChildren(SIGTERM);
 			while ($this->workerProcesses) {
-				$status = null;
-				if ($exited = pcntl_wait($status, WNOHANG)) {
-					unset($this->workerProcesses[$exited]);
-					$this->getLogger()->debug("Worker $exited got WNOHANG");
-				}
-				else {
+				if (!$this->cleanChildren()) {
 					sleep(1);
 				}
 			}
