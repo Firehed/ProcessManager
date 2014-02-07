@@ -60,6 +60,7 @@ abstract class ProcessManager {
 		$this->getLogger()->debug("$this->myPid SIGTERM handler installation");
 		pcntl_signal(SIGTERM, [$this,'signal']);
 		pcntl_signal(SIGINT,  [$this,'signal']);
+		pcntl_signal(SIGTRAP, [$this,'signal']);
 	}
 
 	private function isParent() {
@@ -84,6 +85,10 @@ abstract class ProcessManager {
 		case SIGTERM:
 		case SIGINT:
 			$this->handleSigterm();
+			break;
+		case SIGTRAP: // fail for now
+		default:
+			$this->getLogger()->error("No signal handler for $signo");
 			break;
 		}
 	}
