@@ -7,7 +7,7 @@ abstract class ProcessManager {
 	use \Psr\Log\LoggerAwareTrait;
 
 	private $managerPid;
-	private $workerProcesses = [];
+	private $workerProcesses = []; // pid => pid
 	private $shouldWork = true;
 	private $workers = 1;
 
@@ -77,10 +77,20 @@ abstract class ProcessManager {
 	}
 
 	public function signal($signo) {
+		switch ($signo) {
+		case SIGTERM:
+		case SIGINT:
+			$this->handleSigterm();
+			break;
+		}
+	}
+
+	private function handleSigterm() {
 		if ($this->isParent()) {
 			$this->stopWorking();
 			$this->getLogger()->info('Parent got sigterm');
-			$this->getLogger()->debug("Children: " . print_r($this->workerProcesses, true));
+			$this->getLogger()->debug("Children: ".
+				print_r(array_keys($this->workerProcesses), true));
 			$this->stopChildren(SIGTERM);
 			while ($this->workerProcesses) {
 				$status = null;
@@ -121,7 +131,7 @@ abstract class ProcessManager {
 	}
 
 	private function stopChildren($sig = SIGTERM) {
-		foreach ($this->workerProcesses as $pid) {
+		foreach ($this->workerProcesses as $pid => $pidCopy) {
 			$this->getLogger()->debug("Sending SIGTERM to $pid");
 			posix_kill($pid, $sig);
 			if (!posix_kill($pid, 0)) {
