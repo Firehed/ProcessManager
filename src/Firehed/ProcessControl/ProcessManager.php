@@ -43,12 +43,15 @@ abstract class ProcessManager {
 		$this->manageWorkers();
 	}
 
+	/** @return bool did a child exit? */
 	private function cleanChildren() {
 		$status = null;
 		if ($exited = pcntl_wait($status, WNOHANG)) {
 			unset($this->workerProcesses[$exited]);
 			$this->getLogger()->info("Worker $exited got WNOHANG during normal operation");
+			return true;
 		}
+		return false;
 	}
 
 	abstract protected function doWork();
