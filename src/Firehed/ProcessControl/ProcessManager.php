@@ -68,7 +68,7 @@ abstract class ProcessManager {
 
 	private function manageWorkers() {
 		while ($this->shouldWork) {
-			// Do nothing other than wait for SIGTERM/SIGIN
+			// Do nothing other than wait for SIGTERM/SIGINT
 			if (count($this->workerProcesses) < $this->workers) {
 				$this->spawnWorker();
 			}
