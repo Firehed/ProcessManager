@@ -151,6 +151,7 @@ abstract class ProcessManager {
 			$this->workerType = $type;
 			$this->getLogger()->info("$this->myPid created");
 			$this->installSignals();
+			$this->beforeWork();
 			$this->work();
 			break;
 		default: // Parent
@@ -172,6 +173,10 @@ abstract class ProcessManager {
 
 	protected function stopWorking() {
 		$this->shouldWork = false;
+	}
+
+	protected function beforeWork() {
+		// hook, intentionally left empty
 	}
 
 	private function work() {
