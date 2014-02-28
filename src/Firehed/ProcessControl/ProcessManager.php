@@ -150,6 +150,10 @@ abstract class ProcessManager {
 			$this->myPid = getmypid();
 			$this->workerType = $type;
 			$this->getLogger()->info("$this->myPid created");
+			// Available since PHP 5.5
+			if (function_exists('cli_set_process_title')) {
+				cli_set_process_title($type);
+			}
 			$this->installSignals();
 			$this->beforeWork();
 			$this->work();
