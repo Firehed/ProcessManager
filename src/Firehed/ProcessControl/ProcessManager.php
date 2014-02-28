@@ -7,7 +7,7 @@ abstract class ProcessManager {
 	use \Psr\Log\LoggerAwareTrait;
 
 	private $managerPid;
-	private $workerProcesses = []; // pid => pid
+	private $workerProcesses = []; // pid => type
 	private $shouldWork = true;
 	private $workers = 1;
 	private $workerTypes = []; // name => count to spawn
@@ -161,7 +161,7 @@ abstract class ProcessManager {
 	}
 
 	private function stopChildren($sig = SIGTERM) {
-		foreach ($this->workerProcesses as $pid => $pidCopy) {
+		foreach ($this->workerProcesses as $pid => $type) {
 			$this->getLogger()->debug("Sending SIGTERM to $pid");
 			posix_kill($pid, $sig);
 			if (!posix_kill($pid, 0)) {
