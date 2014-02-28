@@ -10,9 +10,10 @@ abstract class ProcessManager {
 	private $workerProcesses = []; // pid => pid
 	private $shouldWork = true;
 	private $workers = 1;
-
+	private $workerTypes = []; // name => count to spawn
 
 	protected $myPid;
+	protected $workerType;
 
 	public function __construct(\Psr\Log\LoggerInterface $logger = null) {
 		$this->managerPid = $this->myPid = getmypid();
@@ -37,6 +38,20 @@ abstract class ProcessManager {
 			throw new InvalidArgumentException("Must have at least 1 worker");
 		}
 		$this->workers = $count;
+		return $this;
+	}
+
+	public function setWorkerTypes(array $types) {
+		foreach ($types as $name => $count) {
+			if (!is_string($name)) {
+				throw new \Exception("Worker type name must be a string");
+			}
+			if (!is_int($count) || $count < 1) {
+				throw new \Exception("Worker type count must be a positive integer");
+			}
+		}
+		$this->workerTypes = $types;
+		return $this;
 	}
 
 	final public function start() {
@@ -71,7 +86,18 @@ abstract class ProcessManager {
 		while ($this->shouldWork) {
 			// Do nothing other than wait for SIGTERM/SIGINT
 			if (count($this->workerProcesses) < $this->workers) {
-				$this->spawnWorker();
+				$didSpawn = false;
+				$currentWorkers = array_count_values($this->workerProcesses);
+				foreach ($this->workerTypes as $type => $count) {
+					if (isset($currentWorkers[$type]) && $currentWorkers[$type] < $count) {
+						$this->spawnWorker($type);
+						$didSpawn = true;
+						break;
+					}
+				}
+				if (!$didSpawn) {
+					$this->spawnWorker();
+				}
 			}
 			else {
 				$this->cleanChildren();
@@ -114,7 +140,7 @@ abstract class ProcessManager {
 		}
 	}
 
-	private function spawnWorker() {
+	private function spawnWorker($type = '_generic') {
 		$this->getLogger()->info("Creating a new worker");
 		switch ($pid = pcntl_fork()) {
 		case -1: // Failed
@@ -122,13 +148,14 @@ abstract class ProcessManager {
 			exit(2);
 		case 0:  // Child
 			$this->myPid = getmypid();
+			$this->workerType = $type;
 			$this->getLogger()->info("$this->myPid created");
 			$this->installSignals();
 			$this->work();
 			break;
 		default: // Parent
 			$this->getLogger()->debug("Parent created child with pid $pid");
-			$this->workerProcesses[$pid] = $pid;
+			$this->workerProcesses[$pid] = $type;
 			break;
 		}
 	}
