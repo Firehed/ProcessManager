@@ -6,7 +6,9 @@ use GearmanWorker;
 
 class GearmanWorkerManager extends ProcessManager {
 
+	// GearmanWorker object
 	private $worker = null;
+	// Number of attemps to reconnect to gearmand
 	private $reconnects = 0;
 
 	private $functions = [];
