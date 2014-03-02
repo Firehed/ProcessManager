@@ -16,6 +16,14 @@ class GearmanWorkerManager extends ProcessManager {
 	private $myCallbacks = [];
 	// [ini function name => callable]
 	private $registeredFunctions = [];
+	// gearmand servers
+	private $servers = '127.0.0.1:4730';
+
+	public function setServers(array $servers) {
+		// Todo: validate?
+		$this->servers = implode(',', $servers);
+		return $this;
+	}
 
 	public function setConfigFile($path) {
 		$config = parse_ini_file($path, $process_sections=true);
@@ -98,7 +106,7 @@ class GearmanWorkerManager extends ProcessManager {
 			$this->worker = new GearmanWorker();
 			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
 			$this->worker->setTimeout(2500);
-			$this->worker->addServer();
+			$this->worker->addServers($this->servers);
 			foreach ($this->myCallbacks as $name => $cb) {
 				$this->worker->addFunction($name, $cb);
 			}
