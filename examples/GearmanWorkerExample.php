@@ -31,16 +31,15 @@ $pm = new Firehed\ProcessControl\GearmanWorkerManager;
 // callable with "call_user_func" should work. The function must accept one 
 // parameter: GearmanJob $job. This means native PHP funtions must be wrapped: 
 // see 'my_reverse_function'
-//
+$pm->registerFunction("flip_it", "my_reverse_function");
 
-$pm->addFunction("flip_it", "my_reverse_function");
-
-$pm->addFunction("my_uppercase", function(GearmanJob $job) {
+$pm->registerFunction("my_uppercase", function(GearmanJob $job) {
 	return strtoupper($job->workload());
 });
 
-// Optional: set number of workers
-$pm->setWorkerCount(2);
+// Once GM functions have been registered, load a config mapping worker name
+// to count and functions to run
+$pm->setConfigFile(__DIR__.'/GearmanWorker.ini');
 
 // When other configuration options are available, examples will be added here
 

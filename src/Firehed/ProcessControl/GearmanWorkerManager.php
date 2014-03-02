@@ -10,11 +10,52 @@ class GearmanWorkerManager extends ProcessManager {
 	private $worker = null;
 	// Number of attemps to reconnect to gearmand
 	private $reconnects = 0;
+	// [worker name => []<gm function name>]
+	private $config = array();
+	// Functions this worker will expose to Gearman (set in child only)
+	private $myCallbacks = [];
+	// [ini function name => callable]
+	private $registeredFunctions = [];
 
-	private $functions = [];
+	public function setConfigFile($path) {
+		$config = parse_ini_file($path, $process_sections=true);
+		$defaults =
+		[ 'count' => 0
+		, 'functions' => []
+		];
+		$types = [];
+		foreach ($config as $section => $values) {
+			$values += $defaults;
+			if ($values['count'] < 1) {
+				throw new \Exception("[$section] count must be a postive number");
+			}
+			$types[$section] = (int) $values['count'];
 
-	public function addFunction($name, callable $fn) {
-		$this->functions[$name] = $fn;
+			// Todo: automatic support for "all" and "unhandled"
+			if (!$values['functions'] || !is_array($values['functions'])) {
+				throw new \Exception("At least one function s required");
+			}
+			// Validate passed functions have been registered
+			foreach ($values['functions'] as $name) {
+				if (!isset($this->registeredFunctions[$name])) {
+					throw new \Exception("Function '$name' is not registered");
+				}
+			}
+			$this->config[$section] = $values['functions'];
+		}
+
+		// Set up parent management config
+		$this->setWorkerTypes($types);
+	}
+
+	protected function beforeWork() {
+		foreach ($this->config[$this->workerType] as $name) {
+			$this->myCallbacks[$name] = $this->registeredFunctions[$name];
+		}
+	}
+
+	public function registerFunction($name, callable $fn) {
+		$this->registeredFunctions[$name] = $fn;
 	}
 
 	protected function doWork() {
@@ -56,8 +97,8 @@ class GearmanWorkerManager extends ProcessManager {
 			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
 			$this->worker->setTimeout(2500);
 			$this->worker->addServer();
-			foreach ($this->functions as $name => $fn) {
-				$this->worker->addFunction($name, $fn);
+			foreach ($this->myCallbacks as $name => $cb) {
+				$this->worker->addFunction($name, $cb);
 			}
 		}
 		return $this->worker;
