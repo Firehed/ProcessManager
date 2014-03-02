@@ -9,7 +9,7 @@ abstract class ProcessManager {
 	private $managerPid;
 	private $workerProcesses = []; // pid => type
 	private $shouldWork = true;
-	private $workers = 1;
+	private $workers = 0;
 	private $workerTypes = []; // name => count to spawn
 
 	protected $myPid;
@@ -30,18 +30,8 @@ abstract class ProcessManager {
 		return $this->logger;
 	}
 
-	public function setWorkerCount($count) {
-		if (!is_int($count)) {
-			throw new InvalidArgumentException("Integer argument is required");
-		}
-		if ($count < 1) {
-			throw new InvalidArgumentException("Must have at least 1 worker");
-		}
-		$this->workers = $count;
-		return $this;
-	}
-
 	public function setWorkerTypes(array $types) {
+		$total = 0;
 		foreach ($types as $name => $count) {
 			if (!is_string($name)) {
 				throw new \Exception("Worker type name must be a string");
@@ -49,8 +39,10 @@ abstract class ProcessManager {
 			if (!is_int($count) || $count < 1) {
 				throw new \Exception("Worker type count must be a positive integer");
 			}
+			$total += $count;
 		}
 		$this->workerTypes = $types;
+		$this->workers = $total;
 		return $this;
 	}
 
@@ -89,7 +81,7 @@ abstract class ProcessManager {
 				$didSpawn = false;
 				$currentWorkers = array_count_values($this->workerProcesses);
 				foreach ($this->workerTypes as $type => $count) {
-					if (isset($currentWorkers[$type]) && $currentWorkers[$type] < $count) {
+					if (!isset($currentWorkers[$type]) || $currentWorkers[$type] < $count) {
 						$this->spawnWorker($type);
 						$didSpawn = true;
 						break;
@@ -121,10 +113,10 @@ abstract class ProcessManager {
 
 	private function handleSigterm() {
 		if ($this->isParent()) {
-			$this->stopWorking();
 			$this->getLogger()->info('Parent got sigterm');
 			$this->getLogger()->debug("Children: ".
 				print_r(array_keys($this->workerProcesses), true));
+			$this->stopWorking();
 			$this->stopChildren(SIGTERM);
 			while ($this->workerProcesses) {
 				if (!$this->cleanChildren()) {
@@ -141,7 +133,8 @@ abstract class ProcessManager {
 	}
 
 	private function spawnWorker($type = '_generic') {
-		$this->getLogger()->info("Creating a new worker");
+
+		$this->getLogger()->info("Creating a new worker of type $type");
 		switch ($pid = pcntl_fork()) {
 		case -1: // Failed
 			$this->getLogger()->error("Spawning worker failed");
