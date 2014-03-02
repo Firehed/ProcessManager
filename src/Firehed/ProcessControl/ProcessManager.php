@@ -78,17 +78,11 @@ abstract class ProcessManager {
 		while ($this->shouldWork) {
 			// Do nothing other than wait for SIGTERM/SIGINT
 			if (count($this->workerProcesses) < $this->workers) {
-				$didSpawn = false;
 				$currentWorkers = array_count_values($this->workerProcesses);
 				foreach ($this->workerTypes as $type => $count) {
 					if (!isset($currentWorkers[$type]) || $currentWorkers[$type] < $count) {
 						$this->spawnWorker($type);
-						$didSpawn = true;
-						break;
 					}
-				}
-				if (!$didSpawn) {
-					$this->spawnWorker();
 				}
 			}
 			else {
