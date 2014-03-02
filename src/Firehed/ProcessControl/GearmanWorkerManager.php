@@ -46,6 +46,7 @@ class GearmanWorkerManager extends ProcessManager {
 
 		// Set up parent management config
 		$this->setWorkerTypes($types);
+		return $this;
 	}
 
 	protected function beforeWork() {
@@ -56,6 +57,7 @@ class GearmanWorkerManager extends ProcessManager {
 
 	public function registerFunction($name, callable $fn) {
 		$this->registeredFunctions[$name] = $fn;
+		return $this;
 	}
 
 	protected function doWork() {
