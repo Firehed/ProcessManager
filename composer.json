@@ -8,6 +8,5 @@
 	}
 , "require":
 	{ "psr/log": ">=1.0.0"
-	, "firehed/daemon": "dev-master"
 	}
 }
