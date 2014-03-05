@@ -1,10 +1,10 @@
 <?php
 
 // Use Composer's autoloader
-if (file_exists('../vendor/autoload.php')) {
-	require_once '../vendor/autoload.php';
-} elseif (file_exists('../../../vendor/autoload.php')) {
-	require_once '../../../vendor/autoload.php';
+if (file_exists(__DIR__.'/../vendor/autoload.php')) {
+	require_once __DIR__.'/../vendor/autoload.php';
+} elseif (file_exists(__DIR__.'/../../../vendor/autoload.php')) {
+	require_once __DIR__.'/../../../vendor/autoload.php';
 }
 
 // Wrapper for strrev(), invoked when a "flip_it" job is received (more below)
