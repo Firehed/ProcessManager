@@ -16,8 +16,8 @@ function my_reverse_function(GearmanJob $job) {
 // register)
 declare(ticks=1);
 
-// Optional but highly recommended: daemonize the worker manager
-Firehed\ProcessControl\Daemon::run();
+// Suggestion: use Firehed\ProcessControl\Daemon to daemonize the master worker
+// Available via composer at firehed/daemon
 
 // Get a new worker manager for configuration
 $pm = new Firehed\ProcessControl\GearmanWorkerManager;
