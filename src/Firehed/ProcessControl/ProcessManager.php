@@ -71,6 +71,7 @@ abstract class ProcessManager {
 		pcntl_signal(SIGTERM, [$this,'signal']);
 		pcntl_signal(SIGINT,  [$this,'signal']);
 		pcntl_signal(SIGTRAP, [$this,'signal']);
+		pcntl_signal(SIGHUP,  [$this,'signal']);
 	}
 
 	private function isParent() {
@@ -101,6 +102,9 @@ abstract class ProcessManager {
 		case SIGINT:
 			$this->handleSigterm();
 			break;
+		case SIGHUP:
+			$this->handleSighup();
+			break;
 		case SIGTRAP:
 			$e = new \Exception;
 			file_put_contents(sys_get_temp_dir().'/pm_backtrace_'.$this->myPid,
@@ -109,6 +113,22 @@ abstract class ProcessManager {
 		default:
 			$this->getLogger()->error("No signal handler for $signo");
 			break;
+		}
+	}
+
+	private function handleSighup() {
+		if ($this->isParent()) {
+		}
+		else { // Child
+			// Ignore SIGHUP unless a term request has already been received
+			if ($this->shouldWork) {
+				return;
+			}
+			$this->getLogger()->info("Child $this->myPid received SIGHUP;".
+				" detaching to finish the current job then exiting.");
+			if (-1 ===  posix_setsid()) {
+				$this->getLogger()->error("Child $this->myPid could not detach from parent to finish last piece of work");
+			}
 		}
 	}
 
