@@ -12,6 +12,8 @@ class GearmanWorkerManager extends ProcessManager {
 	private $reconnects = 0;
 	// [worker name => []<gm function name>]
 	private $config = array();
+	// [worker name => count]
+	private $runCounts = [];
 	// Functions this worker will expose to Gearman (set in child only)
 	private $myCallbacks = [];
 	// [ini function name => callable]
@@ -30,6 +32,7 @@ class GearmanWorkerManager extends ProcessManager {
 		$defaults =
 		[ 'count' => 0
 		, 'functions' => []
+		, 'runcount' => 0
 		];
 		$types = [];
 		foreach ($config as $section => $values) {
@@ -50,6 +53,7 @@ class GearmanWorkerManager extends ProcessManager {
 				}
 			}
 			$this->config[$section] = $values['functions'];
+			$this->runCounts[$section] = (int) $values['runcount'];
 		}
 
 		// Set up parent management config
@@ -61,6 +65,7 @@ class GearmanWorkerManager extends ProcessManager {
 		foreach ($this->config[$this->workerType] as $name) {
 			$this->myCallbacks[$name] = $this->registeredFunctions[$name];
 		}
+		$this->setRunCount($this->runCounts[$this->workerType]);
 	}
 
 	public function registerFunction($name, callable $fn) {
@@ -68,6 +73,7 @@ class GearmanWorkerManager extends ProcessManager {
 		return $this;
 	}
 
+	/** @return true if work was attempted, false otherwise */
 	protected function doWork() {
 		$worker = $this->getWorker();
 		if ($worker->work()) {
@@ -81,7 +87,7 @@ class GearmanWorkerManager extends ProcessManager {
 				if (@$worker->wait()) {
 					$this->getLogger()->debug("$this->myPid waited with no error");
 					$this->reconnects = 0;
-					return true;
+					return false;
 				}
 				if ($worker->returnCode() == GEARMAN_NO_ACTIVE_FDS) {
 					$this->getLogger()->error("$this->myPid Connection to gearmand server failed");
@@ -98,6 +104,7 @@ class GearmanWorkerManager extends ProcessManager {
 				$this->getLogger()->error("$this->myPid exiting after getting code {$worker->returnCode()}");
 				$this->stopWorking();
 		}
+		return false; // Assume no work was done
 	}
 
 	private function getWorker() {
