@@ -184,6 +184,7 @@ abstract class ProcessManager {
 			throw new \Exception("Count must be 0 or greater");
 		}
 		$this->runCount = $count;
+	}
 
 	private function work() {
 		$this->getLogger()->debug("Child $this->myPid about to start work");
