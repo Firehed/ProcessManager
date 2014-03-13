@@ -101,7 +101,11 @@ abstract class ProcessManager {
 		case SIGINT:
 			$this->handleSigterm();
 			break;
-		case SIGTRAP: // fail for now
+		case SIGTRAP:
+			$e = new \Exception;
+			file_put_contents(sys_get_temp_dir().'/pm_backtrace_'.$this->myPid,
+				$e->getTraceAsString());
+			break;
 		default:
 			$this->getLogger()->error("No signal handler for $signo");
 			break;
