@@ -133,8 +133,7 @@ abstract class ProcessManager {
 		}
 	}
 
-	private function spawnWorker($type = '_generic') {
-
+	private function spawnWorker($type) {
 		$this->getLogger()->info("Creating a new worker of type $type");
 		switch ($pid = pcntl_fork()) {
 		case -1: // Failed
