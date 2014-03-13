@@ -11,6 +11,8 @@ abstract class ProcessManager {
 	private $shouldWork = true;
 	private $workers = 0;
 	private $workerTypes = []; // name => count to spawn
+	private $runCount = 0; // child: number of times to run before respawn
+	private $roundsComplete = 0; // child: number of times work completed
 
 	protected $myPid;
 	protected $workerType;
@@ -61,6 +63,7 @@ abstract class ProcessManager {
 		return false;
 	}
 
+	/** @return true if work was done, false otherwise */
 	abstract protected function doWork();
 
 	private function installSignals() {
@@ -170,12 +173,27 @@ abstract class ProcessManager {
 		// hook, intentionally left empty
 	}
 
+	protected function setRunCount($count) {
+		if (!is_int($count)) {
+			throw new \Exception("Count must be an integer");
+		}
+		elseif ($count < 0) {
+			throw new \Exception("Count must be 0 or greater");
+		}
+		$this->runCount = $count;
+
 	private function work() {
 		$this->getLogger()->debug("Child $this->myPid about to start work");
 		while ( $this->shouldWork ) {
 			$_SERVER['REQUEST_TIME'] = time();
 			$_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
-			$this->doWork();
+			if ($this->doWork()) {
+				$this->roundsComplete++;
+			}
+			// If runCount is 0, go indefinitely. Otherwise stop after runCount
+			if ($this->runCount && $this->roundsComplete >= $this->runCount) {
+				$this->stopWorking();
+			}
 		}
 		$this->getLogger()->info("Child $this->myPid exiting");
 		exit;
