@@ -140,11 +140,25 @@ abstract class ProcessManager {
 		if ($this->isParent()) {
 		}
 		else { // Child
-			$this->getLogger()->info("Child $this->myPid received SIGHUP;".
+			$this->getLogger()->info("Child received SIGHUP;".
 				" detaching to finish the current job then exiting.");
-			if (-1 ===  posix_setsid()) {
+			$newpid = pcntl_fork();
+			if (-1 === $newpid) {
+				$this->getLogger()->error("Child detach-forking failed completely");
+			}
+			elseif (0 === $newpid) {
+				// Detached child, continue as normal
+			}
+			else {
+				exit; // Original child attacked to parent
+			}
+			/*
+			 * Detaching from the terminal doesn't seem to do anything useful,
+			 * especially since this is normally going to be run as a daemon
+			if (-1 === posix_setsid()) {
 				$this->getLogger()->error("Child $this->myPid could not detach from parent to finish last piece of work");
 			}
+			*/
 		}
 	}
 
