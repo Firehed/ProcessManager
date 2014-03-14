@@ -155,13 +155,6 @@ abstract class ProcessManager {
 				print_r(array_keys($this->workerProcesses), true));
 			$this->stopWorking();
 			$this->stopChildren(SIGTERM);
-			while ($this->workerProcesses) {
-				if (!$this->cleanChildren()) {
-					sleep(1);
-				}
-			}
-			$this->getLogger()->info("Parent shutting down");
-			exit;
 		}
 		else {
 			$this->getLogger()->info("Child $this->myPid received SIGTERM; stopping work");
