@@ -68,7 +68,7 @@ abstract class ProcessManager {
 	abstract protected function doWork();
 
 	private function installSignals() {
-		$this->getLogger()->debug("$this->myPid SIGTERM handler installation");
+		$this->getLogger()->debug("Installing signals");
 		pcntl_signal(SIGTERM, [$this,'signal']);
 		pcntl_signal(SIGINT,  [$this,'signal']);
 		pcntl_signal(SIGTRAP, [$this,'signal']);
