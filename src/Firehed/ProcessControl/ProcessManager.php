@@ -8,7 +8,7 @@ abstract class ProcessManager {
 
 	private $managerPid;
 	private $workerProcesses = []; // pid => type
-	private $shouldWork = true;
+	private $shouldWork = false;
 	private $workers = 0;
 	private $workerTypes = []; // name => count to spawn
 	private $runCount = 0; // child: number of times to run before respawn
@@ -49,6 +49,7 @@ abstract class ProcessManager {
 	}
 
 	final public function start() {
+		$this->shouldWork = true;
 		$this->manageWorkers();
 	}
 
