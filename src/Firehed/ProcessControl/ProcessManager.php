@@ -241,7 +241,7 @@ abstract class ProcessManager {
 
 	private function work() {
 		$this->getLogger()->debug("Child $this->myPid about to start work");
-		while ( $this->shouldWork ) {
+		while ($this->shouldWork) {
 			$_SERVER['REQUEST_TIME'] = time();
 			$_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
 			if ($this->doWork()) {
