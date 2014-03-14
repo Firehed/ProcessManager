@@ -122,13 +122,13 @@ abstract class ProcessManager {
 	}
 
 	private function handleSighup() {
+		// Ignore SIGHUP unless a term request has already been received
+		if ($this->shouldWork) {
+			return;
+		}
 		if ($this->isParent()) {
 		}
 		else { // Child
-			// Ignore SIGHUP unless a term request has already been received
-			if ($this->shouldWork) {
-				return;
-			}
 			$this->getLogger()->info("Child $this->myPid received SIGHUP;".
 				" detaching to finish the current job then exiting.");
 			if (-1 ===  posix_setsid()) {
