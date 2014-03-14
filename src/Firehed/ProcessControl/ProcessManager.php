@@ -253,7 +253,7 @@ abstract class ProcessManager {
 				$this->stopWorking();
 			}
 		}
-		$this->getLogger()->info("Child $this->myPid exiting");
+		$this->getLogger()->info("Child has stopped working and will exit");
 		exit;
 	}
 
