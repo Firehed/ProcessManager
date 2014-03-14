@@ -73,6 +73,7 @@ abstract class ProcessManager {
 		pcntl_signal(SIGINT,  [$this,'signal']);
 		pcntl_signal(SIGTRAP, [$this,'signal']);
 		pcntl_signal(SIGHUP,  [$this,'signal']);
+		pcntl_signal(SIGCHLD, [$this,'signal']);
 	}
 
 	private function isParent() {
@@ -105,6 +106,9 @@ abstract class ProcessManager {
 			break;
 		case SIGHUP:
 			$this->handleSighup();
+			break;
+		case SIGCHLD:
+			$this->cleanChildren();
 			break;
 		case SIGTRAP:
 			$e = new \Exception;
