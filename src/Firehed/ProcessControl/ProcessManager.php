@@ -138,6 +138,10 @@ abstract class ProcessManager {
 			return;
 		}
 		if ($this->isParent()) {
+			// Might move the handle second SIGTERM logic in here, but "SIGTERM
+			// SIGTERM" seems like a more natural and slightly less error-prome
+			// way to handle things, as the controlling terminal could SIGHUP
+			// the parent unexpectedly.
 		}
 		else { // Child
 			$this->getLogger()->info("Child received SIGHUP;".
