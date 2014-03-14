@@ -212,9 +212,11 @@ abstract class ProcessManager {
 		}
 	}
 
-	private function stopChildren($sig = SIGTERM) {
+	private function stopChildren($sig) {
 		foreach ($this->workerProcesses as $pid => $type) {
-			$this->getLogger()->debug("Sending SIGTERM to $pid");
+			// I'd prefer logging the actual signal name here but there's not
+			// a one-liner to convert AFAIK
+			$this->getLogger()->debug("Sending signal $sig to $pid");
 			posix_kill($pid, $sig);
 			if (!posix_kill($pid, 0)) {
 				$this->getLogger()->debug("$pid is dead already");
