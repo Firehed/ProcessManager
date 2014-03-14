@@ -10,7 +10,7 @@ class GearmanWorkerManager extends ProcessManager {
 	private $worker = null;
 	// Number of attemps to reconnect to gearmand
 	private $reconnects = 0;
-	// [worker name => []<gm function name>]
+	// [worker name => []<gm function name>
 	private $config = array();
 	// [worker name => count]
 	private $runCounts = [];
