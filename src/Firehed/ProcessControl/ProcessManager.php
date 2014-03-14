@@ -160,7 +160,8 @@ abstract class ProcessManager {
 			 * Detaching from the terminal doesn't seem to do anything useful,
 			 * especially since this is normally going to be run as a daemon
 			if (-1 === posix_setsid()) {
-				$this->getLogger()->error("Child $this->myPid could not detach from parent to finish last piece of work");
+				$this->getLogger()->error("Child could not detach from parent".
+					" to finish last piece of work");
 			}
 			*/
 		}
@@ -168,7 +169,7 @@ abstract class ProcessManager {
 
 	private function handleSigterm() {
 		if ($this->isParent()) {
-			$this->getLogger()->info('Parent got sigterm');
+			$this->getLogger()->info('Parent got sigterm/sigint');
 			$this->getLogger()->debug("Children: ".
 				print_r(array_keys($this->workerProcesses), true));
 			if (!$this->shouldWork) {
