@@ -96,6 +96,17 @@ abstract class ProcessManager {
 				sleep(5);
 			}
 		}
+		$this->getLogger()->debug("Stopping work, waiting for children");
+		// For magical unixey reasons I don't understand, simply listening for
+		// SIGHCLD isn't reliable enough here, so we have to spin on this and
+		// manually watch for children to reap. Might just be a weird race
+		// condition. Dunno.
+		while ($this->workerProcesses) {
+			if (!$this->cleanChildren()) {
+				sleep(1);
+			}
+		}
+		$this->getLogger()->debug("All children have stopped");
 	}
 
 	public function signal($signo) {
