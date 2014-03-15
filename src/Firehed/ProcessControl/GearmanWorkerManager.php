@@ -14,6 +14,8 @@ class GearmanWorkerManager extends ProcessManager {
 	private $config = array();
 	// [worker name => count]
 	private $runCounts = [];
+	// [worker name => nice];
+	private $niceties = [];
 	// Functions this worker will expose to Gearman (set in child only)
 	private $myCallbacks = [];
 	// [ini function name => callable]
@@ -33,6 +35,7 @@ class GearmanWorkerManager extends ProcessManager {
 		[ 'count' => 0
 		, 'functions' => []
 		, 'runcount' => 0
+		, 'nice' => 0
 		];
 		$types = [];
 		foreach ($config as $section => $values) {
@@ -54,6 +57,7 @@ class GearmanWorkerManager extends ProcessManager {
 			}
 			$this->config[$section] = $values['functions'];
 			$this->runCounts[$section] = (int) $values['runcount'];
+			$this->niceties[$section] = (int) $values['nice'];
 		}
 
 		// Set up parent management config
@@ -66,6 +70,7 @@ class GearmanWorkerManager extends ProcessManager {
 			$this->myCallbacks[$name] = $this->registeredFunctions[$name];
 		}
 		$this->setRunCount($this->runCounts[$this->workerType]);
+		$this->setNice($this->niceties[$this->workerType]);
 	}
 
 	public function registerFunction($name, callable $fn) {

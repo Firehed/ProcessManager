@@ -12,6 +12,7 @@ abstract class ProcessManager {
 	private $workers = 0;
 	private $workerTypes = []; // name => count to spawn
 	private $runCount = 0; // child: number of times to run before respawn
+	private $nice = 0; // child: process nice level (see: man nice)
 	private $roundsComplete = 0; // child: number of times work completed
 
 	protected $myPid;
@@ -242,8 +243,19 @@ abstract class ProcessManager {
 		$this->runCount = $count;
 	}
 
+	protected function setNice($level) {
+		if (!is_int($level) || $level > 20 || $level < -20) {
+			throw new \Exception("Nice must be an int between -20 and 20");
+		}
+		$this->nice = $level;
+	}
+
 	private function work() {
 		$this->getLogger()->debug("Child $this->myPid about to start work");
+		if ($this->nice) {
+			$this->getLogger()->debug("Child being reniced to $this->nice");
+			proc_nice($this->nice);
+		}
 		while ($this->shouldWork) {
 			$_SERVER['REQUEST_TIME'] = time();
 			$_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
