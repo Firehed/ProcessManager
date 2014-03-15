@@ -96,6 +96,7 @@ abstract class ProcessManager {
 				// Just in case a SIGCHLD was missed
 				$this->cleanChildren();
 			}
+			sleep(1);
 		}
 		$this->getLogger()->debug("Stopping work, waiting for children");
 		// For magical unixey reasons I don't understand, simply listening for
