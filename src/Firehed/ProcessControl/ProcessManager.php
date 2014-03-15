@@ -92,8 +92,8 @@ abstract class ProcessManager {
 				}
 			}
 			else {
+				// Just in case a SIGCHLD was missed
 				$this->cleanChildren();
-				sleep(5);
 			}
 		}
 		$this->getLogger()->debug("Stopping work, waiting for children");
