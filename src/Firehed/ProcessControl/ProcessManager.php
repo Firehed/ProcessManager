@@ -14,6 +14,7 @@ abstract class ProcessManager {
 	private $runCount = 0; // child: number of times to run before respawn
 	private $nice = 0; // child: process nice level (see: man nice)
 	private $roundsComplete = 0; // child: number of times work completed
+	private $beforeWorkCallbacks = []; // parent: child type to array of CBs
 
 	protected $myPid;
 	protected $workerType;
@@ -33,6 +34,10 @@ abstract class ProcessManager {
 		return $this->logger;
 	}
 
+	public function addBeforeWorkCallback($workerType, callable $cb) {
+		$this->beforeWorkCallbacks[$workerType][] = $cb;
+	} // addBeforeWorkCallback
+
 	public function setWorkerTypes(array $types) {
 		$total = 0;
 		foreach ($types as $name => $count) {
@@ -42,6 +47,7 @@ abstract class ProcessManager {
 			if (!is_int($count) || $count < 1) {
 				throw new \Exception("Worker type count must be a positive integer");
 			}
+			$this->beforeWorkCallbacks[$name] = []; // init the array
 			$total += $count;
 		}
 		$this->workerTypes = $types;
@@ -204,6 +210,10 @@ abstract class ProcessManager {
 				cli_set_process_title($type);
 			}
 			$this->installSignals();
+			// Fixme: clean up and merge this before stuff
+			foreach ($this->beforeWorkCallbacks[$type] as $cb) {
+				$cb();
+			}
 			$this->beforeWork();
 			$this->work();
 			break;
