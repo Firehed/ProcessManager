@@ -49,12 +49,6 @@ class GearmanWorkerManager extends ProcessManager {
 			if (!$values['functions'] || !is_array($values['functions'])) {
 				throw new \Exception("At least one function s required");
 			}
-			// Validate passed functions have been registered
-			foreach ($values['functions'] as $name) {
-				if (!isset($this->registeredFunctions[$name])) {
-					throw new \Exception("Function '$name' is not registered");
-				}
-			}
 			$this->config[$section] = $values['functions'];
 			$this->runCounts[$section] = (int) $values['runcount'];
 			$this->niceties[$section] = (int) $values['nice'];
