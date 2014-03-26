@@ -2,3 +2,4 @@ pid
 log
 log.err
 vendor/
+.*.swp
