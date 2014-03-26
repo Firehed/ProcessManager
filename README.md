@@ -15,9 +15,13 @@ Code:
 	<?php
 	// Preferred:
 	require 'vendor/autoload.php'; // composer
-	// Alternately:
-	// include 'path/to/daemon.php';
-	Firehed\ProcessControl\Daemon::run();
+    (new Firehed\ProcessControl\Daemon)
+        ->setUser('sites')
+        ->setPidFileLocation('/var/run/gearman-manager2.pid')
+        ->setStdoutFileLocation(sys_get_temp_dir().'/my.log')
+        ->setStdErrFileLocation('/dev/null')
+        ->setProcessName(basename(__FILE__).' master process')
+        ->autoRun();
 	// The rest of your original script
 
 CLI:
@@ -38,8 +42,13 @@ Yes, it's that simple.
 * Kill: Kill the daemon via SIGKILL (kill -9)
 
 ## Options
-None yet. I intend to add configuration for:
+* `setProcessName($string)`: Set the process name as it will appear in utilities such as `top`. This is only supported under PHP5.5+.
+* `setPidFileLocation($path)`: Specify the location of the pid file. This file stores the process id when the daemon is running, and goes away when the daemon stops.
+* `setStdoutFileLocation($path)`: File where anything that would have been written to `STDOUT` (`echo`, `print`, etc) goes.
+* `setStdErrFileLocation($path)`: File where anything that would have been written to `STDERR` goes. It appears that `display_errors` no longer writes to `STDERR` after daemonizing, so setting this to `/dev/null` is pretty safe.
+* `setUser($system_user)`: If you want to have the process run as a lower-security user, specify the username here. This is especially helpful if you start the daemon on system with `chkconfig` and `/etc/init.d`, since those run as root.
 
+To come later(?):
 * Verbose output
 * Synchronous mode (do not daemonize for debugging)
 * Log file configuration
