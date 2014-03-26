@@ -2,7 +2,7 @@
 , "description": "Simple base for daemonized wokers"
 , "license": "MIT"
 , "autoload":
-	{ "psr-0":
+	{ "psr-4":
 		{ "Firehed\\ProcessControl": "src/"
 		}
 	}
