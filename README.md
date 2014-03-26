@@ -1,10 +1,13 @@
-# Daemon
-A really useful tool with a very boring name. Daemonize your PHP scripts with two lines of code.
+# Process Control Tools
 
 ## Requirements
 * `posix` and `pcntl` extensions
-* PHP5 (Written and tested in 5.3, but any version >=5.0.0 should work)
+* PHP5.4+ (Uses modern syntax)
 * Basic knowledge of PHP on the command line
+
+# Daemon
+A really useful tool with a very boring name. Daemonize your PHP scripts with two lines of code.
+
 
 ## Usage
 Code:
