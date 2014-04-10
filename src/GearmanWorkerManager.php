@@ -112,7 +112,22 @@ class GearmanWorkerManager extends ProcessManager {
 			$this->worker = new GearmanWorker();
 			$this->worker->addOptions(GEARMAN_WORKER_NON_BLOCKING);
 			$this->worker->setTimeout(2500);
-			$this->worker->addServers($this->servers);
+			try {
+				$this->worker->addServers($this->servers);
+			} catch (GearmanException $e) {
+				// Swallow the error without logging
+				//
+				// PHP's gearman extension erroneously makes a network call in
+				// here to set the exception option (I've looked through the
+				// gearman server code to figure out what this is for, and have
+				// no idea, but it's a bunch of messy C). If gearmand is
+				// unavailable, addServers will throw, despite what the
+				// documentation says. Regardless, a lack of gearmand server
+				// availability is handled in doWork (GEARMAN_NO_ACTIVE_FDS) so
+				// we want to silently ignore it in the startup process a) so
+				// it matches the documented behavior and b) to prevent a fatal
+				// error in the worker due to an uncaught exception.
+			}
 			foreach ($this->myCallbacks as $name => $cb) {
 				$this->worker->addFunction($name, $cb);
 			}
