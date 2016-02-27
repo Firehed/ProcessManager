@@ -1,5 +1,4 @@
 <?php
-declare(ticks=1);
 
 namespace Firehed\ProcessControl;
 
@@ -39,6 +38,13 @@ class Daemon {
 	}
 
 	private function checkForDeclareDirective() {
+		// PHP7 appears to exhibit different behavior with ticks than
+		// 5. Basically, >=7 requires the tick handler at the top of this
+		// file for this to execute at all (making the detection
+		// pointless), but it doesn't persist in the rest of the script.
+		if (version_compare(\PHP_VERSION, '7.0.0', '>=')) {
+			return;
+		}
 		register_tick_function([$this, 'didTick']);
 		usleep(1);
 		if (!$this->didTick) {
