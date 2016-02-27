@@ -1,5 +1,4 @@
 <?php
-declare(ticks=1);
 
 namespace Firehed\ProcessControl;
 
@@ -90,6 +89,7 @@ abstract class ProcessManager {
 
 	private function manageWorkers() {
 		while ($this->shouldWork) {
+			pcntl_signal_dispatch();
 			// Do nothing other than wait for SIGTERM/SIGINT
 			if (count($this->workerProcesses) < $this->workers) {
 				$currentWorkers = array_count_values($this->workerProcesses);
@@ -269,6 +269,7 @@ abstract class ProcessManager {
 			proc_nice($this->nice);
 		}
 		while ($this->shouldWork) {
+			pcntl_signal_dispatch();
 			$_SERVER['REQUEST_TIME'] = time();
 			$_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
 			if ($this->doWork()) {
