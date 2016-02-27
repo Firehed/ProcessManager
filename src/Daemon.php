@@ -6,6 +6,9 @@ use InvalidArgumentException;
 
 class Daemon {
 
+	private $stdin;
+	private $stdout;
+	private $stderr;
 	private $pidfile = 'pid';
 	private $logFile = 'log';
 	private $errFile = 'log.err';
