@@ -59,7 +59,7 @@ class Daemon {
 		if (self::$instance) {
 			self::crash("Singletons only, please");
 		}
-		self::$instance = true;
+		self::$instance = $this; // avoid premature destruct
 
 		// parse options
 		$this->checkForDeclareDirective();
