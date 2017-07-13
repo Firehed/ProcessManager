@@ -149,10 +149,10 @@ class Daemon
             case 'status':
             case 'kill':
                 call_user_func(array($this, $cmd));
-            break;
+                break;
             default:
                 self::showHelp();
-            break;
+                break;
         }
     }
 
@@ -172,12 +172,12 @@ class Daemon
         switch ($pid) {
             case -1: // fork failed
                 self::crash("Could not fork");
-            break;
+                break;
 
             case 0: // i'm the child
                 $this->childPid = getmypid();
                 $this->debug("Forked - child process ($this->childPid)");
-            break;
+                break;
 
             default: // i'm the parent
                 $me = getmypid();
