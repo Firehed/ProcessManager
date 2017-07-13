@@ -20,7 +20,6 @@ class Daemon
     private $termLimit = 20;
     private $fh;
     private $childPid;
-    private $didTick = false;
     private $userId = null;
 
     /** @var LoggerInterface */
@@ -38,7 +37,6 @@ class Daemon
         $this->logger = $logger ?? new NullLogger();
 
         // parse options
-        $this->checkForDeclareDirective();
     }
 
     public function __destruct()
@@ -61,36 +59,6 @@ class Daemon
         $cmd = $_SERVER['PHP_SELF'];
         echo "Usage: $cmd {status|start|stop|restart|reload|kill}\n";
         exit(0);
-    }
-
-    public function didTick()
-    {
-        $this->didTick = true;
-    }
-
-    private function checkForDeclareDirective()
-    {
-        // PHP7 appears to exhibit different behavior with ticks than
-        // 5. Basically, >=7 requires the tick handler at the top of this
-        // file for this to execute at all (making the detection
-        // pointless), but it doesn't persist in the rest of the script.
-        if (version_compare(\PHP_VERSION, '7.0.0', '>=')) {
-            return;
-        }
-        register_tick_function([$this, 'didTick']);
-        usleep(1);
-        if (!$this->didTick) {
-            // Try a bunch of no-ops in case the directive is set as > 1
-            $i = 1000;
-            while ($i--);
-        }
-        unregister_tick_function([$this, 'didTick']);
-        if (!$this->didTick) {
-            fwrite(STDERR, "It looks like `declare(ticks=1);` has not been ".
-                "called, so signals to stop the daemon will fail. Ensure ".
-                "that the root-level script calls this.\n");
-            exit(1);
-        }
     }
 
     public function setUser($systemUsername)
