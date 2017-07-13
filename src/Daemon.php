@@ -187,7 +187,7 @@ class Daemon
                 $this->logger->debug("Forked - parent process ($me -> $pid)");
                 fseek($this->fh, 0);
                 ftruncate($this->fh, 0);
-                fwrite($this->fh, $pid);
+                fwrite($this->fh, (string) $pid);
                 fflush($this->fh);
                 $this->logger->debug("Parent wrote PID");
                 exit;
