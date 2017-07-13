@@ -127,7 +127,7 @@ class Daemon
         }
     }
 
-    private function start()
+    public function start()
     {
         self::show("Starting...");
         // Open and lock PID file
@@ -211,18 +211,19 @@ class Daemon
         self::ok();
     }
 
-    private function stop($exit = true)
+    public function stop($exit = true)
     {
         $this->terminate('Stopping', SIGTERM);
         $exit && exit;
     }
-    private function restart()
+
+    public function restart()
     {
         $this->stop(false);
         $this->start();
     }
 
-    private function reload()
+    public function reload()
     {
         $pid = $this->getChildPid();
         self::show("Sending SIGUSR1");
@@ -234,7 +235,7 @@ class Daemon
         exit;
     }
 
-    private function status()
+    public function status()
     {
         $pid = $this->getChildPid();
         if (!$pid) {
