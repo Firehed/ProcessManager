@@ -1,15 +1,20 @@
-{ "name": "firehed/processmanager"
-, "description": "Simple base for daemonized wokers"
-, "license": "MIT"
-, "autoload":
-	{ "psr-4":
-		{ "Firehed\\ProcessControl\\": "src/"
-		}
-	}
-, "require":
-	{ "psr/log": ">=1.0.0"
-	, "php": ">=5.4.0"
-	, "ext-posix": "*"
-	, "ext-pcntl": "*"
-	}
+{
+    "name": "firehed\/processmanager",
+    "description": "Simple base for daemonized wokers",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Firehed\\ProcessControl\\": "src\/"
+        }
+    },
+    "require": {
+        "psr\/log": ">=1.0.0",
+        "php": ">=5.4.0",
+        "ext-posix": "*",
+        "ext-pcntl": "*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^0.7.0",
+        "squizlabs/php_codesniffer": "^3.0"
+    }
 }
