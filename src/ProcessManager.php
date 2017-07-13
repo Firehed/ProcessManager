@@ -2,10 +2,15 @@
 
 namespace Firehed\ProcessControl;
 
+use Exception;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
 abstract class ProcessManager
 {
 
-    use \Psr\Log\LoggerAwareTrait;
+    use LoggerAwareTrait;
 
     private $managerPid;
     private $workerProcesses = []; // pid => type
@@ -20,13 +25,13 @@ abstract class ProcessManager
     protected $myPid;
     protected $workerType;
 
-    public function __construct(\Psr\Log\LoggerInterface $logger = null)
+    public function __construct(LoggerInterface $logger = null)
     {
         $this->managerPid = $this->myPid = getmypid();
         if ($logger) {
             $this->setLogger($logger);
         } else {
-            $this->setLogger(new \Psr\Log\NullLogger);
+            $this->setLogger(new NullLogger);
         }
         $this->installSignals();
     }
@@ -46,10 +51,10 @@ abstract class ProcessManager
         $total = 0;
         foreach ($types as $name => $count) {
             if (!is_string($name)) {
-                throw new \Exception("Worker type name must be a string");
+                throw new Exception("Worker type name must be a string");
             }
             if (!is_int($count) || $count < 1) {
-                throw new \Exception("Worker type count must be a positive integer");
+                throw new Exception("Worker type count must be a positive integer");
             }
             $this->beforeWorkCallbacks[$name] = []; // init the array
             $total += $count;
@@ -140,9 +145,11 @@ abstract class ProcessManager
                 $this->cleanChildren();
                 break;
             case SIGTRAP:
-                $e = new \Exception;
-                file_put_contents(sys_get_temp_dir().'/pm_backtrace_'.$this->myPid,
-                    $e->getTraceAsString());
+                $e = new Exception;
+                file_put_contents(
+                    sys_get_temp_dir().'/pm_backtrace_'.$this->myPid,
+                    $e->getTraceAsString()
+                );
                 break;
             default:
                 $this->getLogger()->error("No signal handler for $signo");
