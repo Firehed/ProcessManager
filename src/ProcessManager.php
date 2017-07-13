@@ -99,8 +99,16 @@ abstract class ProcessManager
 
     private function manageWorkers()
     {
+        $dispatch = false;
+        if (function_exists('pcntl_async_signals')) {
+            pcntl_async_signals(true);
+        } else {
+            $dispatch = true;
+        }
         while ($this->shouldWork) {
-            pcntl_signal_dispatch();
+            if ($dispatch) {
+                pcntl_signal_dispatch();
+            }
             // Do nothing other than wait for SIGTERM/SIGINT
             if (count($this->workerProcesses) < $this->workers) {
                 $currentWorkers = array_count_values($this->workerProcesses);
