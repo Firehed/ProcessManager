@@ -25,8 +25,7 @@ abstract class ProcessManager
         $this->managerPid = $this->myPid = getmypid();
         if ($logger) {
             $this->setLogger($logger);
-        }
-        else {
+        } else {
             $this->setLogger(new \Psr\Log\NullLogger);
         }
         $this->installSignals();
@@ -108,8 +107,7 @@ abstract class ProcessManager
                         $this->spawnWorker($type);
                     }
                 }
-            }
-            else {
+            } else {
                 // Just in case a SIGCHLD was missed
                 $this->cleanChildren();
             }
@@ -131,24 +129,24 @@ abstract class ProcessManager
     public function signal($signo)
     {
         switch ($signo) {
-        case SIGTERM:
-        case SIGINT:
-            $this->handleSigterm();
-            break;
-        case SIGHUP:
-            $this->handleSighup();
-            break;
-        case SIGCHLD:
-            $this->cleanChildren();
-            break;
-        case SIGTRAP:
-            $e = new \Exception;
-            file_put_contents(sys_get_temp_dir().'/pm_backtrace_'.$this->myPid,
-                $e->getTraceAsString());
-            break;
-        default:
-            $this->getLogger()->error("No signal handler for $signo");
-            break;
+            case SIGTERM:
+            case SIGINT:
+                $this->handleSigterm();
+                break;
+            case SIGHUP:
+                $this->handleSighup();
+                break;
+            case SIGCHLD:
+                $this->cleanChildren();
+                break;
+            case SIGTRAP:
+                $e = new \Exception;
+                file_put_contents(sys_get_temp_dir().'/pm_backtrace_'.$this->myPid,
+                    $e->getTraceAsString());
+                break;
+            default:
+                $this->getLogger()->error("No signal handler for $signo");
+                break;
         }
     }
 
@@ -163,18 +161,15 @@ abstract class ProcessManager
             // SIGTERM" seems like a more natural and slightly less error-prome
             // way to handle things, as the controlling terminal could SIGHUP
             // the parent unexpectedly.
-        }
-        else { // Child
+        } else { // Child
             $this->getLogger()->info("Child received SIGHUP;".
                 " detaching to finish the current job then exiting.");
             $newpid = pcntl_fork();
             if (-1 === $newpid) {
                 $this->getLogger()->error("Child detach-forking failed completely");
-            }
-            elseif (0 === $newpid) {
+            } elseif (0 === $newpid) {
                 // Detached child, continue as normal
-            }
-            else {
+            } else {
                 exit; // Original child attacked to parent
             }
             /*
@@ -202,8 +197,7 @@ abstract class ProcessManager
             }
             $this->stopWorking();
             $this->stopChildren(SIGTERM);
-        }
-        else {
+        } else {
             $this->getLogger()->info("Child $this->myPid received SIGTERM; stopping work");
             $this->stopWorking();
         }
@@ -213,29 +207,29 @@ abstract class ProcessManager
     {
         $this->getLogger()->info("Creating a new worker of type $type");
         switch ($pid = pcntl_fork()) {
-        case -1: // Failed
-            $this->getLogger()->error("Spawning worker failed");
-            exit(2);
-        case 0:  // Child
-            $this->myPid = getmypid();
-            $this->workerType = $type;
-            $this->getLogger()->info("$this->myPid created");
-            // Available since PHP 5.5
-            if (function_exists('cli_set_process_title')) {
-                cli_set_process_title($type);
-            }
-            $this->installSignals();
-            // Fixme: clean up and merge this before stuff
-            foreach ($this->beforeWorkCallbacks[$type] as $cb) {
-                $cb();
-            }
-            $this->beforeWork();
-            $this->work();
-            break;
-        default: // Parent
-            $this->getLogger()->debug("Parent created child with pid $pid");
-            $this->workerProcesses[$pid] = $type;
-            break;
+            case -1: // Failed
+                $this->getLogger()->error("Spawning worker failed");
+                exit(2);
+            case 0:  // Child
+                $this->myPid = getmypid();
+                $this->workerType = $type;
+                $this->getLogger()->info("$this->myPid created");
+                // Available since PHP 5.5
+                if (function_exists('cli_set_process_title')) {
+                    cli_set_process_title($type);
+                }
+                $this->installSignals();
+                // Fixme: clean up and merge this before stuff
+                foreach ($this->beforeWorkCallbacks[$type] as $cb) {
+                    $cb();
+                }
+                $this->beforeWork();
+                $this->work();
+                break;
+            default: // Parent
+                $this->getLogger()->debug("Parent created child with pid $pid");
+                $this->workerProcesses[$pid] = $type;
+                break;
         }
     }
 
@@ -266,8 +260,7 @@ abstract class ProcessManager
     {
         if (!is_int($count)) {
             throw new \Exception("Count must be an integer");
-        }
-        elseif ($count < 0) {
+        } elseif ($count < 0) {
             throw new \Exception("Count must be 0 or greater");
         }
         $this->runCount = $count;
