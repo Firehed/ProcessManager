@@ -3,6 +3,8 @@
 namespace Firehed\ProcessControl;
 
 use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class Daemon
 {
@@ -19,7 +21,24 @@ class Daemon
     private $didTick = false;
     private $userId = null;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     private static $instance;
+
+    public function __construct(LoggerInterface $logger = null)
+    {
+        if (self::$instance) {
+            self::crash("Singletons only, please");
+        }
+        self::$instance = $this; // avoid premature destruct
+
+        $this->logger = $logger ?? new NullLogger();
+
+        // parse options
+        $this->checkForDeclareDirective();
+    }
+
 
     private static function crash($msg)
     {
@@ -68,17 +87,6 @@ class Daemon
                 "that the root-level script calls this.\n");
             exit(1);
         }
-    }
-
-    public function __construct()
-    {
-        if (self::$instance) {
-            self::crash("Singletons only, please");
-        }
-        self::$instance = $this; // avoid premature destruct
-
-        // parse options
-        $this->checkForDeclareDirective();
     }
 
     public function setUser($systemUsername)
