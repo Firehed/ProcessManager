@@ -27,6 +27,13 @@ abstract class ProcessManager
     protected $myPid;
     protected $workerType;
 
+    /**
+     * @return bool true if work was done, false otherwise
+     */
+    abstract protected function doWork();
+
+    // -( Concrete Implementation )---------------------------------------------
+
     public function __construct(LoggerInterface $logger = null)
     {
         $this->managerPid = $this->myPid = getmypid();
@@ -78,9 +85,6 @@ abstract class ProcessManager
         }
         return false;
     }
-
-    /** @return true if work was done, false otherwise */
-    abstract protected function doWork();
 
     private function installSignals()
     {
