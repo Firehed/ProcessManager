@@ -38,11 +38,6 @@ abstract class ProcessManager
         $this->installSignals();
     }
 
-    protected function getLogger()
-    {
-        return $this->logger;
-    }
-
     public function addBeforeWorkCallback($workerType, callable $cb)
     {
         $this->beforeWorkCallbacks[$workerType][] = $cb;
@@ -78,7 +73,7 @@ abstract class ProcessManager
         $status = null;
         if ($exited = pcntl_wait($status, WNOHANG)) {
             unset($this->workerProcesses[$exited]);
-            $this->getLogger()->info("Worker $exited got WNOHANG during normal operation");
+            $this->logger->info("Worker $exited got WNOHANG during normal operation");
             return true;
         }
         return false;
@@ -89,7 +84,7 @@ abstract class ProcessManager
 
     private function installSignals()
     {
-        $this->getLogger()->debug("Installing signals");
+        $this->logger->debug("Installing signals");
         pcntl_signal(SIGTERM, [$this,'signal']);
         pcntl_signal(SIGINT,  [$this,'signal']);
         pcntl_signal(SIGTRAP, [$this,'signal']);
@@ -120,7 +115,7 @@ abstract class ProcessManager
             }
             sleep(1);
         }
-        $this->getLogger()->debug("Stopping work, waiting for children");
+        $this->logger->debug("Stopping work, waiting for children");
         // For magical unixey reasons I don't understand, simply listening for
         // SIGHCLD isn't reliable enough here, so we have to spin on this and
         // manually watch for children to reap. Might just be a weird race
@@ -130,7 +125,7 @@ abstract class ProcessManager
                 sleep(1);
             }
         }
-        $this->getLogger()->debug("All children have stopped");
+        $this->logger->debug("All children have stopped");
     }
 
     public function signal(int $signo)
@@ -154,7 +149,7 @@ abstract class ProcessManager
                 );
                 break;
             default:
-                $this->getLogger()->error("No signal handler for $signo");
+                $this->logger->error("No signal handler for $signo");
                 break;
         }
     }
@@ -171,11 +166,11 @@ abstract class ProcessManager
             // way to handle things, as the controlling terminal could SIGHUP
             // the parent unexpectedly.
         } else { // Child
-            $this->getLogger()->info("Child received SIGHUP;".
+            $this->logger->info("Child received SIGHUP;".
                 " detaching to finish the current job then exiting.");
             $newpid = pcntl_fork();
             if (-1 === $newpid) {
-                $this->getLogger()->error("Child detach-forking failed completely");
+                $this->logger->error("Child detach-forking failed completely");
             } elseif (0 === $newpid) {
                 // Detached child, continue as normal
             } else {
@@ -185,7 +180,7 @@ abstract class ProcessManager
              * Detaching from the terminal doesn't seem to do anything useful,
              * especially since this is normally going to be run as a daemon
             if (-1 === posix_setsid()) {
-                $this->getLogger()->error("Child could not detach from parent".
+                $this->logger->error("Child could not detach from parent".
                     " to finish last piece of work");
             }
             */
@@ -195,11 +190,11 @@ abstract class ProcessManager
     private function handleSigterm()
     {
         if ($this->isParent()) {
-            $this->getLogger()->info('Parent got sigterm/sigint');
-            $this->getLogger()->debug("Children: ".
+            $this->logger->info('Parent got sigterm/sigint');
+            $this->logger->debug("Children: ".
                 print_r(array_keys($this->workerProcesses), true));
             if (!$this->shouldWork) {
-                $this->getLogger()->debug(
+                $this->logger->debug(
                     "Parent got second SIGTERM, telling children to detach");
                 $this->stopChildren(SIGHUP);
                 return;
@@ -207,22 +202,22 @@ abstract class ProcessManager
             $this->stopWorking();
             $this->stopChildren(SIGTERM);
         } else {
-            $this->getLogger()->info("Child $this->myPid received SIGTERM; stopping work");
+            $this->logger->info("Child $this->myPid received SIGTERM; stopping work");
             $this->stopWorking();
         }
     }
 
     private function spawnWorker($type)
     {
-        $this->getLogger()->info("Creating a new worker of type $type");
+        $this->logger->info("Creating a new worker of type $type");
         switch ($pid = pcntl_fork()) {
             case -1: // Failed
-                $this->getLogger()->error("Spawning worker failed");
+                $this->logger->error("Spawning worker failed");
                 exit(2);
             case 0:  // Child
                 $this->myPid = getmypid();
                 $this->workerType = $type;
-                $this->getLogger()->info("$this->myPid created");
+                $this->logger->info("$this->myPid created");
                 // Available since PHP 5.5
                 if (function_exists('cli_set_process_title')) {
                     cli_set_process_title($type);
@@ -236,7 +231,7 @@ abstract class ProcessManager
                 $this->work();
                 break;
             default: // Parent
-                $this->getLogger()->debug("Parent created child with pid $pid");
+                $this->logger->debug("Parent created child with pid $pid");
                 $this->workerProcesses[$pid] = $type;
                 break;
         }
@@ -247,10 +242,10 @@ abstract class ProcessManager
         foreach ($this->workerProcesses as $pid => $type) {
             // I'd prefer logging the actual signal name here but there's not
             // a one-liner to convert AFAIK
-            $this->getLogger()->debug("Sending signal $sig to $pid");
+            $this->logger->debug("Sending signal $sig to $pid");
             posix_kill($pid, $sig);
             if (!posix_kill($pid, 0)) {
-                $this->getLogger()->debug("$pid is dead already");
+                $this->logger->debug("$pid is dead already");
             }
         }
     }
@@ -283,9 +278,9 @@ abstract class ProcessManager
 
     private function work()
     {
-        $this->getLogger()->debug("Child $this->myPid about to start work");
+        $this->logger->debug("Child $this->myPid about to start work");
         if ($this->nice) {
-            $this->getLogger()->debug("Child being reniced to $this->nice");
+            $this->logger->debug("Child being reniced to $this->nice");
             proc_nice($this->nice);
         }
         while ($this->shouldWork) {
@@ -300,7 +295,7 @@ abstract class ProcessManager
                 $this->stopWorking();
             }
         }
-        $this->getLogger()->info("Child has stopped working and will exit");
+        $this->logger->info("Child has stopped working and will exit");
         exit;
     }
 }
