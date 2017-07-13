@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Firehed\ProcessControl;
 
 use Exception;
@@ -131,7 +133,7 @@ abstract class ProcessManager
         $this->getLogger()->debug("All children have stopped");
     }
 
-    public function signal($signo)
+    public function signal(int $signo)
     {
         switch ($signo) {
             case SIGTERM:
@@ -263,20 +265,18 @@ abstract class ProcessManager
         // hook, intentionally left empty
     }
 
-    protected function setRunCount($count)
+    protected function setRunCount(int $count)
     {
-        if (!is_int($count)) {
-            throw new \Exception("Count must be an integer");
-        } elseif ($count < 0) {
-            throw new \Exception("Count must be 0 or greater");
+        if ($count < 0) {
+            throw new Exception("Count must be 0 or greater");
         }
         $this->runCount = $count;
     }
 
-    protected function setNice($level)
+    protected function setNice(int $level)
     {
-        if (!is_int($level) || $level > 20 || $level < -20) {
-            throw new \Exception("Nice must be an int between -20 and 20");
+        if ($level > 20 || $level < -20) {
+            throw new Exception("Nice must be an int between -20 and 20");
         }
         $this->nice = $level;
     }
