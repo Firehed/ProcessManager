@@ -194,8 +194,7 @@ abstract class ProcessManager
             $this->logger->debug("Children: ".
                 print_r(array_keys($this->workerProcesses), true));
             if (!$this->shouldWork) {
-                $this->logger->debug(
-                    "Parent got second SIGTERM, telling children to detach");
+                $this->logger->debug("Parent got second SIGTERM, telling children to detach");
                 $this->stopChildren(SIGHUP);
                 return;
             }
