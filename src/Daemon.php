@@ -41,6 +41,13 @@ class Daemon
         $this->checkForDeclareDirective();
     }
 
+    public function __destruct()
+    {
+        if (getmypid() == $this->childPid) {
+            unlink($this->pidfile);
+        }
+    }
+
 
     private static function crash($msg)
     {
@@ -239,13 +246,6 @@ class Daemon
             sleep(1);
         }
         self::ok();
-    }
-
-    public function __destruct()
-    {
-        if (getmypid() == $this->childPid) {
-            unlink($this->pidfile);
-        }
     }
 
     private function stop($exit = true)
