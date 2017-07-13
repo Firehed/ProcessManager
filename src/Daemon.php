@@ -63,11 +63,6 @@ class Daemon
         exit(0);
     }
 
-    private function debug($msg)
-    {
-        // echo $msg,"\n";
-    }
-
     public function didTick()
     {
         $this->didTick = true;
@@ -175,7 +170,7 @@ class Daemon
         }
 
         // Fork
-        $this->debug("About to fork");
+        $this->logger->debug("About to fork");
         $pid = pcntl_fork();
         switch ($pid) {
             case -1: // fork failed
@@ -184,17 +179,17 @@ class Daemon
 
             case 0: // i'm the child
                 $this->childPid = getmypid();
-                $this->debug("Forked - child process ($this->childPid)");
+                $this->logger->debug("Forked - child process ($this->childPid)");
                 break;
 
             default: // i'm the parent
                 $me = getmypid();
-                $this->debug("Forked - parent process ($me -> $pid)");
+                $this->logger->debug("Forked - parent process ($me -> $pid)");
                 fseek($this->fh, 0);
                 ftruncate($this->fh, 0);
                 fwrite($this->fh, $pid);
                 fflush($this->fh);
-                $this->debug("Parent wrote PID");
+                $this->logger->debug("Parent wrote PID");
                 exit;
         }
 
@@ -211,15 +206,15 @@ class Daemon
 
         self::ok();
         // stdin/etc reset
-        $this->debug("Resetting file descriptors");
+        $this->logger->debug("Resetting file descriptors");
         fclose(STDIN);
         fclose(STDOUT);
         fclose(STDERR);
         $this->stdin  = fopen('/dev/null', 'r');
         $this->stdout = fopen($this->logFile, 'a+');
         $this->stderr = fopen($this->errFile, 'a+');
-        $this->debug("Reopened file descriptors");
-        $this->debug("Executing original script");
+        $this->logger->debug("Reopened file descriptors");
+        $this->logger->debug("Executing original script");
         pcntl_signal(SIGTERM, function() { exit; });
     }
 
