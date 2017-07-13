@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Firehed\ProcessControl;
 
 use InvalidArgumentException;
@@ -107,36 +109,27 @@ class Daemon
         return $this;
     }
 
-    public function setPidFileLocation($path)
+    public function setPidFileLocation(string $path)
     {
-        if (!is_string($path)) {
-            throw new InvalidArgumentException("Pidfile path must be a string");
-        }
         $this->pidfile = $path;
         return $this;
     }
 
-    public function setStdoutFileLocation($path)
+    public function setStdoutFileLocation(string $path)
     {
-        if (!is_string($path)) {
-            throw new InvalidArgumentException("Stdout path must be a string");
-        }
         $this->logFile = $path;
         return $this;
     }
 
-    public function setStderrFileLocation($path)
+    public function setStderrFileLocation(string $path)
     {
-        if (!is_string($path)) {
-            throw new InvalidArgumentException("Stderr path must be a string");
-        }
         $this->errFile = $path;
         return $this;
     }
 
-    public function setTerminateLimit($seconds)
+    public function setTerminateLimit(int $seconds)
     {
-        if (!is_int($seconds) || $seconds < 1) {
+        if ($seconds < 1) {
             throw new InvalidArgumentException("Limit must be a positive int");
         }
         $this->termLimit = $seconds;
