@@ -86,9 +86,9 @@ abstract class ProcessManager
     {
         $this->logger->debug("Installing signals");
         pcntl_signal(SIGTERM, [$this,'signal']);
-        pcntl_signal(SIGINT,  [$this,'signal']);
+        pcntl_signal(SIGINT, [$this,'signal']);
         pcntl_signal(SIGTRAP, [$this,'signal']);
-        pcntl_signal(SIGHUP,  [$this,'signal']);
+        pcntl_signal(SIGHUP, [$this,'signal']);
         pcntl_signal(SIGCHLD, [$this,'signal']);
     }
 
