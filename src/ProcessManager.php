@@ -8,6 +8,7 @@ use Exception;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Throwable;
 
 abstract class ProcessManager
 {
@@ -229,9 +230,11 @@ abstract class ProcessManager
                 $this->myPid = getmypid();
                 $this->workerType = $type;
                 $this->logger->info("$this->myPid created");
-                // Available since PHP 5.5
-                if (function_exists('cli_set_process_title')) {
+                try {
                     cli_set_process_title($type);
+                } catch (Throwable $e) {
+                    // Ignore the error; there's nothing that can be done. This
+                    // just doesn't work reliably on some operating systems.
                 }
                 $this->installSignals();
                 // Fixme: clean up and merge this before stuff
