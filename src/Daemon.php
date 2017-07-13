@@ -264,8 +264,7 @@ class Daemon
         self::show("Sending SIGUSR1");
         if ($pid && posix_kill($pid, SIGUSR1)) {
             self::ok();
-        }
-        else {
+        } else {
             self::failed();
         }
         exit;
