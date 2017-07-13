@@ -21,27 +21,32 @@ class Daemon
 
     private static $instance;
 
-    private static function crash($msg) {
+    private static function crash($msg)
+    {
         // Encapsulate in case we want to throw instead
         self::failed();
         die($msg."\n");
     }
 
-    private static function showHelp() {
+    private static function showHelp()
+    {
         $cmd = $_SERVER['PHP_SELF'];
         echo "Usage: $cmd {status|start|stop|restart|reload|kill}\n";
         exit(0);
     }
 
-    private function debug($msg) {
+    private function debug($msg)
+    {
         // echo $msg,"\n";
     }
 
-    public function didTick() {
+    public function didTick()
+    {
         $this->didTick = true;
     }
 
-    private function checkForDeclareDirective() {
+    private function checkForDeclareDirective()
+    {
         // PHP7 appears to exhibit different behavior with ticks than
         // 5. Basically, >=7 requires the tick handler at the top of this
         // file for this to execute at all (making the detection
@@ -65,7 +70,8 @@ class Daemon
         }
     }
 
-    public function __construct() {
+    public function __construct()
+    {
         if (self::$instance) {
             self::crash("Singletons only, please");
         }
@@ -75,7 +81,8 @@ class Daemon
         $this->checkForDeclareDirective();
     }
 
-    public function setUser($systemUsername) {
+    public function setUser($systemUsername)
+    {
         $info = posix_getpwnam($systemUsername);
         if (!$info) {
             self::crash("User '$systemUsername' not found");
@@ -84,14 +91,16 @@ class Daemon
         return $this;
     }
 
-    public function setProcessName($name) {
+    public function setProcessName($name)
+    {
         if (function_exists('cli_set_process_title')) {
             cli_set_process_title($name);
         }
         return $this;
     }
 
-    public function setPidFileLocation($path) {
+    public function setPidFileLocation($path)
+    {
         if (!is_string($path)) {
             throw new InvalidArgumentException("Pidfile path must be a string");
         }
@@ -99,7 +108,8 @@ class Daemon
         return $this;
     }
 
-    public function setStdoutFileLocation($path) {
+    public function setStdoutFileLocation($path)
+    {
         if (!is_string($path)) {
             throw new InvalidArgumentException("Stdout path must be a string");
         }
@@ -107,7 +117,8 @@ class Daemon
         return $this;
     }
 
-    public function setStderrFileLocation($path) {
+    public function setStderrFileLocation($path)
+    {
         if (!is_string($path)) {
             throw new InvalidArgumentException("Stderr path must be a string");
         }
@@ -115,7 +126,8 @@ class Daemon
         return $this;
     }
 
-    public function setTerminateLimit($seconds) {
+    public function setTerminateLimit($seconds)
+    {
         if (!is_int($seconds) || $seconds < 1) {
             throw new InvalidArgumentException("Limit must be a positive int");
         }
@@ -123,7 +135,8 @@ class Daemon
         return $this;
     }
 
-    public function autoRun() {
+    public function autoRun()
+    {
         if ($_SERVER['argc'] < 2) {
             self::showHelp();
         }
@@ -143,7 +156,8 @@ class Daemon
         }
     }
 
-    private function start() {
+    private function start()
+    {
         self::show("Starting...");
         // Open and lock PID file
         $this->fh = fopen($this->pidfile, 'c+');
@@ -201,7 +215,8 @@ class Daemon
         pcntl_signal(SIGTERM, function() { exit; });
     }
 
-    private function terminate($msg, $signal) {
+    private function terminate($msg, $signal)
+    {
         self::show($msg);
         $pid = $this->getChildPid();
         if (false === $pid) {
@@ -225,22 +240,26 @@ class Daemon
         self::ok();
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         if (getmypid() == $this->childPid) {
             unlink($this->pidfile);
         }
     }
 
-    private function stop($exit = true) {
+    private function stop($exit = true)
+    {
         $this->terminate('Stopping', SIGTERM);
         $exit && exit;
     }
-    private function restart() {
+    private function restart()
+    {
         $this->stop(false);
         $this->start();
     }
 
-    private function reload() {
+    private function reload()
+    {
         $pid = $this->getChildPid();
         self::show("Sending SIGUSR1");
         if ($pid && posix_kill($pid, SIGUSR1)) {
@@ -252,7 +271,8 @@ class Daemon
         exit;
     }
 
-    private function status() {
+    private function status()
+    {
         $pid = $this->getChildPid();
         if (!$pid) {
             echo "Process is stopped\n";
@@ -273,12 +293,14 @@ class Daemon
         }
     }
 
-    private function kill() {
+    private function kill()
+    {
         $this->terminate('Sending SIGKILL', SIGKILL);
         exit;
     }
 
-    private function getChildPid() {
+    private function getChildPid()
+    {
         return file_exists($this->pidfile)
             ? file_get_contents($this->pidfile)
             : false;
@@ -286,18 +308,21 @@ class Daemon
 
     // make output pretty
     private static $chars = 0;
-    private static function show($text) {
+    private static function show($text)
+    {
         echo $text;
         self::$chars += strlen($text);
     }
 
-    private static function ok() {
+    private static function ok()
+    {
         echo str_repeat(' ', 59-self::$chars);
         echo "[\033[0;32m  OK  \033[0m]\n";
         self::$chars = 0;
     }
 
-    private static function failed() {
+    private static function failed()
+    {
         echo str_repeat(' ', 59-self::$chars);
         echo "[\033[0;31mFAILED\033[0m]\n";
         self::$chars = 0;
