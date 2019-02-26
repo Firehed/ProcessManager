@@ -15,6 +15,7 @@ Code:
 	<?php
 	// Preferred:
 	require 'vendor/autoload.php'; // composer
+	declare(ticks=1);
     (new Firehed\ProcessControl\Daemon)
         ->setUser('sites')
         ->setPidFileLocation('/var/run/gearman-manager2.pid')
